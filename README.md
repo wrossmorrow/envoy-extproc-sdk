@@ -96,6 +96,13 @@ $ make install format unit-test run
 ```
 This will (a) install the `python` dependencies, (b) use `buf` to generate code (and install it in the current virtual environment), (c) format the code, (d) run the unit tests, (e) and run the `BaseExtProcService`. However, running the service on it's own is only partially useful as the service is a gRPC service which isn't the easiest to just `curl` at. 
 
+Review the `Makefile` for other commands, including 
+* `format` (`isort`, `black`, and `flake8` linting), 
+* `types` (for `mypy` static type analysis), 
+* `build` (for `docker build`)
+* `package` (for building a `python` package)
+* `publish` (for distributing the `python` package)
+
 The `docker-compose` is a setup with `envoy`, a naive "echo" HTTP server, and the example ExternalProcessor services from `examples/`. This way you can make plain HTTP requests and actually see outcomes from the filters. For example, after running 
 ```
 $ docker-compose up --build
@@ -134,10 +141,26 @@ x-extra-request-id: 7a983b59-d67c-44c8-a54a-2afae7069ac9
 {"method": "put", "path": "/something", "headers": {"host": "localhost:8080", "user-agent": "curl/7.64.1", "accept": "*/*", "content-type": "application/json", "content-length": "14", "x-forwarded-proto": "http", "x-request-id": "7a983b59-d67c-44c8-a54a-2afae7069ac9", "x-extra-request-id": "7a983b59-d67c-44c8-a54a-2afae7069ac9", "x-request-started": "2022-07-16T22:54:49.660908Z", "x-request-digest": "a794dbc467285567e4c2604c991938386366f6ab94b0b0e4fab5e27e0a932e60", "x-context-id": "", "x-envoy-expected-rq-timeout-ms": "15000"}, "body": "{\"hello\":\"hi\"}", "message": "Hello"}
 ```
 
-Review the `Makefile` for other commands, including 
-* `format` (`isort`, `black`, and `flake8` linting), 
-* `types` (for `mypy` static type analysis), 
-* `build` (for `docker build`)
-* `package` (for building a `python` package)
-* `publish` (for distributing the `python` package)
+For contrast, here are these two requests _without_ filters: 
+```
+$ curl localhost:8080/something -X PUT -H 'Content-type: application/json' -d '{"hello":"hi"}' -D -
+HTTP/1.1 200 OK
+server: envoy
+date: Sat, 16 Jul 2022 23:40:24 GMT
+content-length: 362
+content-type: application/json
+x-envoy-upstream-service-time: 1
 
+{"method": "put", "path": "/something", "headers": {"host": "localhost:8080", "user-agent": "curl/7.64.1", "accept": "*/*", "content-type": "application/json", "content-length": "14", "x-forwarded-proto": "http", "x-request-id": "0afcd2c4-6d3d-4513-a29b-40c7954f8942", "x-envoy-expected-rq-timeout-ms": "15000"}, "body": "{\"hello\":\"hi\"
+
+$ curl localhost:8080/something -D -
+HTTP/1.1 200 OK
+server: envoy
+date: Sat, 16 Jul 2022 23:40:30 GMT
+content-length: 302
+content-type: application/json
+x-envoy-upstream-service-time: 1
+
+{"method": "get", "path": "/something", "headers": {"host": "localhost:8080", "user-agent": "curl/7.64.1", "accept": "*/*", "x-forwarded-proto": "http", "x-request-id": "f8dfa254-157b-4f75-a7d0-121f3d245d6b", "x-envoy-expected-rq-timeout-ms": "15000"}, "body": "{\"hello\":\"hi\"}", "message": "Hello"}
+```
+Note the additional response headers and the extra information about the upstream services request headers in the response body. That's the filter set working! 
