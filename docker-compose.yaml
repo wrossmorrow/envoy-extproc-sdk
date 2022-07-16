@@ -8,8 +8,8 @@ services:
     volumes:
       - ./envoy.yaml:/etc/envoy/envoy.yaml
     # turn on logging as needed; can be noisy otherwise
-    # logging:
-    #   driver: none
+    logging:
+      driver: none
 
   upstream:
     hostname: upstream

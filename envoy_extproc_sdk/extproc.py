@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from asyncio import CancelledError, iscoroutinefunction
-from distutils.util import strtobool as tobool
 from enum import Enum
 from logging import getLogger
 from os import environ
+import re
 from typing import Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 from ddtrace import tracer  # noqa: F401
@@ -21,7 +21,9 @@ from .util.timer import Timer
 logger = getLogger(__name__)
 
 
-REVEAL_EXTPROC_CHAIN = tobool(environ.get("REVEAL_EXTPROC_CHAIN", "True"))
+REVEAL_EXTPROC_CHAIN = (
+    re.match(r"^([Tt](rue)?|[Yy](es)?)$", environ.get("REVEAL_EXTPROC_CHAIN", "True")) is not None
+)
 EXTPROCS_APPLIED_HEADER_NAME = "x-ext-procs-applied"
 ENVOY_SERVICE_NAME = "envoy.service.ext_proc.v3.ExternalProcessor"
 
@@ -38,6 +40,15 @@ class ExtProcPhase(str, Enum):
 
 
 class StopRequestProcessing(Exception):
+    """Raise this exception to stop processing the request
+    altogether, concluding processing with the `response`
+    passed in construction of this exception. Note this
+    does not mean there was an _error_ per se; this can
+    just be a mechanism to stop processing even when the
+    request was processed _successfully_. EG, maybe we can
+    respond from cache after seeing the request headers and
+    body."""
+
     def __init__(self, response: ext_api.ImmediateResponse, reason: Optional[str] = None) -> None:
         self.response = response
         self.reason = reason
@@ -259,7 +270,7 @@ class BaseExtProcService(EnvoyExtProcServicer):
     async def process_request_headers(
         self,
         headers: ext_api.HttpHeaders,
-        grpcctx: ServicerContext,
+        context: ServicerContext,
         request: Dict,
         response: ext_api.HeadersResponse,
     ) -> ext_api.HeadersResponse:
@@ -268,7 +279,7 @@ class BaseExtProcService(EnvoyExtProcServicer):
     async def process_request_body(
         self,
         body: ext_api.HttpBody,
-        grpcctx: ServicerContext,
+        context: ServicerContext,
         request: Dict,
         response: ext_api.BodyResponse,
     ) -> ext_api.BodyResponse:
@@ -277,7 +288,7 @@ class BaseExtProcService(EnvoyExtProcServicer):
     async def process_request_trailers(
         self,
         trailers: ext_api.HttpTrailers,
-        grpcctx: ServicerContext,
+        context: ServicerContext,
         request: Dict,
         response: ext_api.TrailersResponse,
     ) -> ext_api.TrailersResponse:
@@ -286,7 +297,7 @@ class BaseExtProcService(EnvoyExtProcServicer):
     async def process_response_headers(
         self,
         headers: ext_api.HttpHeaders,
-        grpcctx: ServicerContext,
+        context: ServicerContext,
         request: Dict,
         response: ext_api.HeadersResponse,
     ) -> ext_api.HeadersResponse:
@@ -295,7 +306,7 @@ class BaseExtProcService(EnvoyExtProcServicer):
     async def process_response_body(
         self,
         body: ext_api.HttpBody,
-        grpcctx: ServicerContext,
+        context: ServicerContext,
         request: Dict,
         response: ext_api.BodyResponse,
     ) -> ext_api.BodyResponse:
@@ -304,7 +315,7 @@ class BaseExtProcService(EnvoyExtProcServicer):
     async def process_response_trailers(
         self,
         trailers: ext_api.HttpTrailers,
-        grpcctx: ServicerContext,
+        context: ServicerContext,
         request: Dict,
         response: ext_api.TrailersResponse,
     ) -> ext_api.TrailersResponse:
