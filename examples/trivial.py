@@ -1,10 +1,16 @@
-import logging
+# TrivialExtProcService
+#
+# This is our simplest example (outside of the BaseExtProcService
+# itself). All this ExternalProcessor does is add another
+# `x-request-id` header (with the same value) to both the
+# upstream and back to the caller, as `x-extra-request-id`.
+
 from typing import Dict, Union
 
 from envoy_extproc_sdk import BaseExtProcService, ext_api, serve
 from grpc import ServicerContext
 
-EXTRA_REQUEST_ID_HEADER = "X-Extra-Request-Id"
+EXTRA_REQUEST_ID_HEADER = "x-extra-request-id"
 
 
 class TrivialExtProcService(BaseExtProcService):
@@ -38,6 +44,8 @@ class TrivialExtProcService(BaseExtProcService):
 
 
 if __name__ == "__main__":
+
+    import logging
 
     FORMAT = "%(asctime)s : %(levelname)s : %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT, handlers=[logging.StreamHandler()])

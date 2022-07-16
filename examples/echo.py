@@ -1,4 +1,15 @@
-import logging
+# EchoExtProcService
+#
+# This example is a straightforward demonstration of
+# how to _immediately_ respond from an ExternalProcessor
+# without actually hitting the upstream service. Specifically,
+# if there is a "truthy" `x-echo-only` header in the request
+# then this processor will send an echo response back when
+# it receives the request body. It does this by raising the
+# StopRequestProcessing exception, which isn't necessarily
+# an "error" but rather a signal of the need to stop request
+# processing.
+
 import re
 from typing import Dict
 
@@ -8,12 +19,7 @@ from envoy_extproc_sdk import (
     serve,
     StopRequestProcessing,
 )
-from envoy_extproc_sdk.util.envoy import (
-    EnvoyHeaderValue,
-    EnvoyHeaderValueOption,
-    EnvoyHttpStatus,
-    EnvoyHttpStatusCode,
-)
+from envoy_extproc_sdk.util.envoy import EnvoyHttpStatusCode
 from grpc import ServicerContext
 
 TRUTHY_REGEX = re.compile(r"^([Tt](rue)?|[Yy](es)?)$")
@@ -47,20 +53,15 @@ class EchoExtProcService(BaseExtProcService):
         if not match:
             return response
 
-        response = ext_api.ImmediateResponse(
-            status=EnvoyHttpStatus(code=EnvoyHttpStatusCode.OK),
-            body=body.body,
-        )
-        response.headers.set_headers.extend(
-            [
-                EnvoyHeaderValueOption(header=EnvoyHeaderValue(key=key, value=value))
-                for key, value in request["request_headers"].items()
-            ]
+        response = self.form_immediate_response(
+            EnvoyHttpStatusCode.OK, request["request_headers"], body.body
         )
         raise StopRequestProcessing(response=response)
 
 
 if __name__ == "__main__":
+
+    import logging
 
     FORMAT = "%(asctime)s : %(levelname)s : %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT, handlers=[logging.StreamHandler()])

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "envoy_extproc_sdk"
-version = "0.1.3"
+version = "0.1.0"
 description = ""
 authors = ["W. Ross Morrow <morrowwr@gmail.com>"]
 packages = [

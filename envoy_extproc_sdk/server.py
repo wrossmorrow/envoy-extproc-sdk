@@ -1,22 +1,18 @@
 from asyncio import get_event_loop
 from logging import getLogger
-from os import environ
 
 from grpc.aio import Server
 from grpc.aio import server as grpc_aio_server
 
 # from .health import register_health
 from .extproc import BaseExtProcService
+from .settings import GRPC_PORT, SHUTDOWN_GRACE_PERIOD
 from .util.envoy import (
     add_ExternalProcessorServicer_to_server,
     EnvoyExtProcServicer,
 )
 
 logger = getLogger(__name__)
-
-GRPC_PORT = int(environ.get("GRPC_PORT", "50051"))
-
-SHUTDOWN_GRACE_PERIOD = int(environ.get("SHUTDOWN_GRACE_PERIOD", "5"))
 
 # Coroutines to be invoked when the event loop is shutting down.
 _cleanup = []

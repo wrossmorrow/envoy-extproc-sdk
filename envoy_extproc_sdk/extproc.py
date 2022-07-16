@@ -3,31 +3,28 @@ from __future__ import annotations
 from asyncio import CancelledError, iscoroutinefunction
 from enum import Enum
 from logging import getLogger
-from os import environ
-import re
 from typing import Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 from ddtrace import tracer  # noqa: F401
 from grpc import ServicerContext, StatusCode
 
+from .settings import (
+    ENVOY_SERVICE_NAME,
+    EXTPROCS_APPLIED_HEADER,
+    REVEAL_EXTPROC_CHAIN,
+)
 from .util.envoy import (
     EnvoyExtProcServicer,
     EnvoyHeaderValue,
     EnvoyHeaderValueOption,
+    EnvoyHttpStatus,
+    EnvoyHttpStatusCode,
     ext_api,
 )
 from .util.timer import Timer
 
 logger = getLogger(__name__)
 
-
-REVEAL_EXTPROC_CHAIN = (
-    re.match(r"^([Tt](rue)?|[Yy](es)?)$", environ.get("REVEAL_EXTPROC_CHAIN", "True")) is not None
-)
-
-EXTPROCS_APPLIED_HEADER = environ.get("EXTPROCS_APPLIED_HEADER", "x-ext-procs-applied")
-
-ENVOY_SERVICE_NAME = "envoy.service.ext_proc.v3.ExternalProcessor"
 
 ExtProcHandler = Callable
 
@@ -70,7 +67,7 @@ class BaseExtProcService(EnvoyExtProcServicer):
         "content-length": "content_length",
         "x-request-id": "__id",
     }
-    
+
     STANDARD_RESPONSE_HEADERS = {
         "content-type": "content_type",
         "content-length": "content_length",
@@ -256,20 +253,21 @@ class BaseExtProcService(EnvoyExtProcServicer):
     #
     #   P = BaseExtProcService(name="MyExtProc")
     #
-    #   @P.processor("request_headers")
+    #   @P.process("request_headers")
     #   async def some_func(headers, context, request):
     #       ...
     #
 
-    def processor(self, phase: ExtProcPhase) -> Callable:
+    def process(self, phase: ExtProcPhase) -> Callable:
         def wrapper(func: ExtProcHandler) -> ExtProcHandler:
             setattr(self, f"process_{phase}", func)
             return getattr(self, f"process_{phase}")
 
         return wrapper
 
-    # phase-specific methods below here; override to
-    # specialize filter behavior, these will simply move on
+    # Phase-specific methods are below. When using subclasses
+    # define these to specialize filter behavior. Note these
+    # aren't "NotImplemented", but rather no-ops.
 
     async def process_request_headers(
         self,
@@ -325,30 +323,47 @@ class BaseExtProcService(EnvoyExtProcServicer):
     ) -> ext_api.TrailersResponse:
         return response
 
-    # some boilerplate; not really encapsulating anything but
-    # possibly useful methods
+    # response helpers - some static so they can be used in the decorator
+    # pattern, yet be instance methods for convenience when subclassing
 
-    def just_continue_response(self) -> ext_api.CommonResponse:
+    @staticmethod
+    def just_continue_response() -> ext_api.CommonResponse:
         """generic "move on" response object (can be modified)"""
         return ext_api.CommonResponse(
             status=ext_api.CommonResponse.ResponseStatus.CONTINUE,
-            header_mutation=ext_api.HeaderMutation(
-                set_headers=[],
-                remove_headers=[],
-            ),
+            header_mutation=ext_api.HeaderMutation(),
         )
 
-    def just_continue_headers(self) -> ext_api.HeadersResponse:
+    @staticmethod
+    def just_continue_headers() -> ext_api.HeadersResponse:
         """generic "move on" headers response object (can be modified)"""
-        return ext_api.HeadersResponse(response=self.just_continue_response())
+        return ext_api.HeadersResponse(response=BaseExtProcService.just_continue_response())
 
-    def just_continue_body(self) -> ext_api.BodyResponse:
+    @staticmethod
+    def just_continue_body() -> ext_api.BodyResponse:
         """generic "move on" body response object (can be modified)"""
-        return ext_api.BodyResponse(response=self.just_continue_response())
+        return ext_api.BodyResponse(response=BaseExtProcService.just_continue_response())
 
-    def just_continue_trailers(self) -> ext_api.TrailersResponse:
+    @staticmethod
+    def just_continue_trailers() -> ext_api.TrailersResponse:
         """generic "move on" trailers response object (can be modified)"""
         return ext_api.TrailersResponse(header_mutation=ext_api.HeaderMutation())
+
+    @staticmethod
+    def form_immediate_response(
+        status: EnvoyHttpStatusCode,
+        headers: Dict[str, str],
+        body: str,
+    ) -> ext_api.ImmediateResponse:
+        status_code = EnvoyHttpStatus(code=status)
+        response = ext_api.ImmediateResponse(status=status_code, body=body)
+        response.headers.set_headers.extend(
+            [
+                EnvoyHeaderValueOption(header=EnvoyHeaderValue(key=key, value=value))
+                for key, value in headers.items()
+            ]
+        )
+        return response
 
     def get_request_headers_response(self) -> ext_api.HeadersResponse:
         return self.just_continue_headers()
@@ -368,7 +383,8 @@ class BaseExtProcService(EnvoyExtProcServicer):
     def get_response_trailers_response(self) -> ext_api.TrailersResponse:
         return self.just_continue_trailers()
 
-    # helpers
+    # header helpers - some static so they can be used in the decorator
+    # pattern, yet be instance methods for convenience when subclassing
 
     @staticmethod
     def get_header(headers: ext_api.HttpHeaders, name: str, lower_cased: bool = False) -> str:

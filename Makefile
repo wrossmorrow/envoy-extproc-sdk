@@ -49,13 +49,12 @@ check-format:
 .PHONY: unit-test
 unit-test: 
 	PYTHONPATH=.:$(GENERATED_CODE) DD_TRACE_ENABLED=false \
-		poetry run python -m pytest -v tests/unit \
-		--capture no
+		poetry run python -m pytest -v tests/unit
 
-.PHONY: mock-test
-mock-test: 
+.PHONY: integration-test
+integration-test: 
 	PYTHONPATH=.:$(GENERATED_CODE) DD_TRACE_ENABLED=false \
-		poetry run python tests/integration/mocked_app.py
+		poetry run python -m pytest tests/integration
 
 .PHONY: run
 run:

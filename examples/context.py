@@ -1,5 +1,8 @@
+# CtxExtProcService
+#
+# TBD
+
 from json import loads
-import logging
 from typing import Dict, Union
 
 from envoy_extproc_sdk import BaseExtProcService, ext_api, serve
@@ -48,6 +51,8 @@ class CtxExtProcService(BaseExtProcService):
 
 
 if __name__ == "__main__":
+
+    import logging
 
     FORMAT = "%(asctime)s : %(levelname)s : %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT, handlers=[logging.StreamHandler()])
