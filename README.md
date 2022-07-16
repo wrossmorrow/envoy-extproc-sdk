@@ -41,53 +41,37 @@ Of course, this service isn't useful outside an `envoy` deployment configured to
 
 There are several examples in `examples/`. These are packaged in the `docker` image built from `Dockerfile`, and included as services in the `docker-compose.yaml`. The basic `envoy` config `envoy.yaml` (used by the `docker-compose`) sets each example up to be used
 
-### `BaseExtProcService`
-
-The `BaseExtProcService` is an example in it's own right, but does nothing to requests. Using `LOG_LEVEL=DEBUG` will print log lines describing the processing steps taken. Run with
+* `BaseExtProcService`: The `BaseExtProcService` is an example in it's own right, but does nothing to requests. Using `LOG_LEVEL=DEBUG` will print log lines describing the processing steps taken. Run with
 ```
 LOG_LEVEL=DEBUG make run
 ```
 
-### `TrivialExtProcService`
-
-This example adds an upstream header as well as a response header, both the `x-request-id` but in the name `x-extra-request-id`. Run with
+* `TrivialExtProcService`: This example adds an upstream header as well as a response header, both the `x-request-id` but in the name `x-extra-request-id`. Run with
 ```
 make run SERVICE=examples.TrivialExtProcService
 ```
 
-### `TimerExtProcService`
-
-This example times the request, add an upstream header (which the request started), and add two response headers (when the request started and how long it took in nanoseconds). Run with
+* `TimerExtProcService`: This example times the request, add an upstream header (which the request started), and add two response headers (when the request started and how long it took in nanoseconds). Run with
 ```
 make run SERVICE=examples.TrivialExtProcService
 ```
 
-### `DigestExtProcService`
-
-This example computes a SHA256 digest of the request method, path, and body, and add that as an upstream request header and a response header `x-request-digest`. It demonstrates inter-phase data use. Run with
+* `DigestExtProcService`: This example computes a SHA256 digest of the request method, path, and body, and add that as an upstream request header and a response header `x-request-digest`. It demonstrates inter-phase data use. Run with
 ```
 make run SERVICE=examples.DigestExtProcService
 ```
 
-### `DecoratedExtProcService`
-
-This example copies `DigestExtProcService`, but implements the service using the `@process` decorator instead of as a subclass service. Run with
+* `DecoratedExtProcService`: This example copies `DigestExtProcService`, but implements the service using the `@process` decorator instead of as a subclass service. Run with
 ```
 make run SERVICE=examples.DecoratedExtProcService
 ```
 
-### `EchoExtProcService`
-
-This example demonstrates use of `StopRequestProcessing` to respond immediately from an ExternalProcessor, instead of sending a request to the upstream processors or target. Run with
+* `EchoExtProcService`: This example demonstrates use of `StopRequestProcessing` to respond immediately from an ExternalProcessor, instead of sending a request to the upstream processors or target. Run with
 ```
 make run SERVICE=examples.EchoExtProcService
 ```
 
-### `CtxExtProcService`
-
-This example allows for testing the request context. It reads a request header `x-context-id`, adding that to the upstream request headers. If that header is missing, the service does nothing else. If it exists, it will also analyze the request body, which it expects to be exactly the `x-context-id` supplied. The processor will fail if this doesn't match. The filter also processes the response body, which it expects to be JSON with the request path equal to `path` (as with our echo server in `tests/mocks/echo`). The service checks that value matches the `path` stored in the request context. These steps are largely to check that we can _concurrently_ make requests with different values and see consistency in the response header `x-context-id`, which we will not get if the service's processing fails. 
-
-Run with
+* `CtxExtProcService`: This example allows for testing the request context. It reads a request header `x-context-id`, adding that to the upstream request headers. If that header is missing, the service does nothing else. If it exists, it will also analyze the request body, which it expects to be exactly the `x-context-id` supplied. The processor will fail if this doesn't match. The filter also processes the response body, which it expects to be JSON with the request path equal to `path` (as with our echo server in `tests/mocks/echo`). The service checks that value matches the `path` stored in the request context. These steps are largely to check that we can _concurrently_ make requests with different values and see consistency in the response header `x-context-id`, which we will not get if the service's processing fails. Run with
 ```
 make run SERVICE=examples.CtxExtProcService
 ```
