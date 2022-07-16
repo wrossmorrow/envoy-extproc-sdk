@@ -15,6 +15,7 @@ import pytest
                 (":method", "get"),
                 (":path", "/api/v0/resource"),
                 ("x-request-id", str(uuid4())),
+                ("x-echo-only", "true"),
             ]
         ),
         envoy_headers(
@@ -23,6 +24,7 @@ import pytest
                 (":path", "/api/v0/resource"),
                 ("x-request=-id", str(uuid4())),
                 ("authorization", str(uuid4())),
+                ("x-echo-only", "true"),
             ]
         ),
     ),

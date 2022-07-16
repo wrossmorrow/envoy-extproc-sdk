@@ -1,7 +1,8 @@
 from hashlib import sha256
+import logging
 from typing import Any, Dict
 
-from envoy_extproc_sdk import BaseExtProcService, ext_api
+from envoy_extproc_sdk import BaseExtProcService, ext_api, serve
 from grpc import ServicerContext
 
 REQUEST_DIGEST_HEADER = "x-request-digest"
@@ -41,11 +42,20 @@ class DigestExtProcService(BaseExtProcService):
         return response
 
     def digest_headers(self, headers: ext_api.HttpHeaders, request: Dict) -> Any:
-
         request["tenant"] = self.get_header(headers, TENANT_ID_HEADER)
+        if not request["tenant"]:
+            request["tenant"] = "unknown"
 
         digest = sha256()
         digest.update(request["tenant"].encode())
         digest.update(request["method"].encode())
         digest.update(request["path"].encode())
         return digest
+
+
+if __name__ == "__main__":
+
+    FORMAT = "%(asctime)s : %(levelname)s : %(message)s"
+    logging.basicConfig(level=logging.INFO, format=FORMAT, handlers=[logging.StreamHandler()])
+
+    serve(service=DigestExtProcService())

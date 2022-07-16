@@ -59,7 +59,7 @@ mock-test:
 
 .PHONY: run
 run:
-	poetry run python -m envoy_extproc_sdk --service $(SERVICE)
+	poetry run python -m envoy_extproc_sdk --service $(SERVICE) --logging
 
 .PHONY: build
 build:

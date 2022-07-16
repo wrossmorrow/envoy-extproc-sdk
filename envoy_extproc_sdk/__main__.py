@@ -1,6 +1,7 @@
 import argparse
 from importlib import import_module
 import logging
+from os import environ
 
 from .extproc import BaseExtProcService
 from .server import serve
@@ -52,6 +53,14 @@ def parse_cli_args() -> argparse.Namespace:
         default=50051,
         help="Port to run service on",
     )
+    parser.add_argument(
+        "-l",
+        "--logging",
+        dest="logging",
+        default=False,
+        action="store_true",
+        help="Include logging setup",
+    )
 
     args: argparse.Namespace = parser.parse_args()
 
@@ -60,9 +69,12 @@ def parse_cli_args() -> argparse.Namespace:
 
 if __name__ == "__main__":  # pragma: no cover
 
-    FORMAT = "%(asctime)s : %(levelname)s : %(message)s"
-    logging.basicConfig(level=logging.INFO, format=FORMAT, handlers=[logging.StreamHandler()])
-
     args = parse_cli_args()
+
+    if args.logging:
+        LOG_LEVEL = environ.get("LOG_LEVEL", "INFO").upper()
+        FORMAT = "%(asctime)s : %(levelname)s : %(message)s"
+        logging.basicConfig(level=LOG_LEVEL, format=FORMAT, handlers=[logging.StreamHandler()])
+
     service = import_from_spec(args.service)() if args.service else BaseExtProcService()
     serve(service, args.port)

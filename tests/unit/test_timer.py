@@ -4,7 +4,7 @@ from envoy_extproc_sdk.testing import (
     envoy_headers,
     envoy_set_headers_to_dict,
 )
-from examples import TimingExtProcService
+from examples import TimerExtProcService
 from examples.timer import REQUEST_DURATION_HEADER, REQUEST_STARTED_HEADER
 from google.protobuf.timestamp_pb2 import Timestamp
 import pytest
@@ -35,7 +35,7 @@ def test_timer_flow(headers: ext_api.HttpHeaders, body: ext_api.HttpBody) -> Non
 
     request = {}
 
-    P = TimingExtProcService()
+    P = TimerExtProcService()
 
     s = Timestamp()
     s.GetCurrentTime()

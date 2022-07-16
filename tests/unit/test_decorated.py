@@ -8,7 +8,7 @@ from envoy_extproc_sdk.testing import (
     envoy_headers,
     envoy_set_headers_to_dict,
 )
-from examples import DecoratedBaseExtProc
+from examples import DecoratedExtProcService
 import pytest
 
 
@@ -51,7 +51,7 @@ import pytest
 async def test_digester_flow(headers: ext_api.HttpHeaders, body: ext_api.HttpBody) -> None:
 
     E = AsEnvoyExtProc(request_headers=headers, request_body=body)
-    P = DecoratedBaseExtProc
+    P = DecoratedExtProcService
 
     method = P.get_header(headers, ":method")
 

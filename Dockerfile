@@ -33,8 +33,7 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 RUN cd /usr/local/bin && ln -s ${POETRY_PATH} && chmod +x ${POETRY_PATH}
 
 COPY ./poetry.lock ./pyproject.toml ./
-RUN poetry config virtualenvs.create false \
-    && poetry install -vvv --no-dev --no-root
+RUN poetry config virtualenvs.create false && poetry install -vvv --no-dev --no-root
 
 COPY ./envoy_extproc_sdk ./envoy_extproc_sdk
 COPY ./examples ./examples

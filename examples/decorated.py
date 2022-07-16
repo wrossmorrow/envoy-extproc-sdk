@@ -9,10 +9,10 @@ REQUEST_DIGEST_HEADER = "x-request-digest"
 TENANT_ID_HEADER = "x-tenant-id"
 
 
-DecoratedBaseExtProc = BaseExtProcService(name="DecoratedBaseExtProc")
+DecoratedExtProcService = BaseExtProcService(name="DecoratedExtProcService")
 
 
-@DecoratedBaseExtProc.processor("request_headers")
+@DecoratedExtProcService.processor("request_headers")
 def start_digest(
     headers: ext_api.HttpHeaders,
     context: ServicerContext,
@@ -30,7 +30,7 @@ def start_digest(
     return response
 
 
-@DecoratedBaseExtProc.processor("request_body")
+@DecoratedExtProcService.processor("request_body")
 def complete_digest(
     body: ext_api.HttpBody,
     context: ServicerContext,
@@ -47,6 +47,8 @@ def complete_digest(
 
 def digest_headers(headers: ext_api.HttpHeaders, request: Dict) -> Any:
     request["tenant"] = BaseExtProcService.get_header(headers, TENANT_ID_HEADER)
+    if not request["tenant"]:
+        request["tenant"] = "unknown"
     digest = sha256()
     digest.update(request["tenant"].encode())
     digest.update(request["method"].encode())
@@ -59,4 +61,4 @@ if __name__ == "__main__":
     FORMAT = "%(asctime)s : %(levelname)s : %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT, handlers=[logging.StreamHandler()])
 
-    serve(service=DecoratedBaseExtProc)
+    serve(service=DecoratedExtProcService())
