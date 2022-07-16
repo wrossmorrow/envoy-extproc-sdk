@@ -41,6 +41,10 @@ Of course, this service isn't useful outside an `envoy` deployment configured to
 
 ## Interface
 
+### Utilities
+
+### Phase Handlers
+
 The following documents how to implement the request phase handlers. In any phase you can `raise` a 
 ```
 envoy_extproc_sdk.StopRequestProcessing
@@ -55,7 +59,7 @@ envoy_extproc_sdk.StopRequestProcessing
 ```
 in `BaseExtProcService`. 
 
-### `@P.process("request_headers")` or `def process_request_headers`
+#### `@P.process("request_headers")` or `def process_request_headers`
 
 Arguments: 
 * `headers`, an `envoy` [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object describing the request headers. 
@@ -65,7 +69,7 @@ Arguments:
 
 Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
 
-### `@P.process("request_body")` or `def process_request_body`
+#### `@P.process("request_body")` or `def process_request_body`
 
 Arguments: 
 * `body`, an `envoy` [HttpBody](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L199) object describing the request body. 
@@ -75,7 +79,7 @@ Arguments:
 
 Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
 
-### `@P.process("response_headers")` or `def process_response_headers`
+#### `@P.process("response_headers")` or `def process_response_headers`
 
 Arguments: 
 * `headers`, an `envoy` [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object describing the request headers. 
@@ -85,7 +89,7 @@ Arguments:
 
 Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
 
-### `@P.process("response_body")` or `def process_response_body`
+#### `@P.process("response_body")` or `def process_response_body`
 
 Arguments: 
 * `body`, an `envoy` [HttpBody](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L199) object describing the response body. 
@@ -95,7 +99,7 @@ Arguments:
 
 Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
 
-### Trailers
+#### Trailers
 
 The trailers handlers are similar, but less likely to be used. See the code for details. 
 
