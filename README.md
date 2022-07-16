@@ -39,6 +39,66 @@ We distribute this as `python` package and as a `docker` container. We do _not_ 
 
 Of course, this service isn't useful outside an `envoy` deployment configured to use it. See `envoy.yaml` for example configurations. 
 
+## Interface
+
+The following documents how to implement the request phase handlers. In any phase you can `raise` a 
+```
+envoy_extproc_sdk.StopRequestProcessing
+```
+`Exception` to supply a response directly from the processor (without sending to the upstream processors or target). The constructor requires an [ImmediateResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L286) object, which you can construct with the helper method
+```
+    def form_immediate_response(
+        status: EnvoyHttpStatusCode,
+        headers: Dict[str, str],
+        body: str,
+    ) -> ext_api.ImmediateResponse:
+```
+in `BaseExtProcService`. 
+
+### `@P.process("request_headers")` or `def process_request_headers`
+
+Arguments: 
+* `headers`, an `envoy` [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object describing the request headers. 
+* `context`, a gRPC [ServicerContext](https://grpc.github.io/grpc/python/grpc.html#grpc.ServicerContext) from the RPC
+* `request`, a simple `Dict` for supplying/supplementing request context across phases
+* `response`, a [HeadersResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L213) object for telling `envoy` how to mutate the request (if at all). 
+
+Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
+
+### `@P.process("request_body")` or `def process_request_body`
+
+Arguments: 
+* `body`, an `envoy` [HttpBody](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L199) object describing the request body. 
+* `context`, a gRPC [ServicerContext](https://grpc.github.io/grpc/python/grpc.html#grpc.ServicerContext) from the RPC
+* `request`, a simple `Dict` for supplying/supplementing request context across phases
+* `response`, a [BodyResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L224) object for telling `envoy` how to mutate the request (if at all). 
+
+Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
+
+### `@P.process("response_headers")` or `def process_response_headers`
+
+Arguments: 
+* `headers`, an `envoy` [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object describing the request headers. 
+* `context`, a gRPC [ServicerContext](https://grpc.github.io/grpc/python/grpc.html#grpc.ServicerContext) from the RPC
+* `request`, a simple `Dict` for supplying/supplementing request context across phases
+* `response`, a [HeadersResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L213) object for telling `envoy` how to mutate the response (if at all). 
+
+Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
+
+### `@P.process("response_body")` or `def process_response_body`
+
+Arguments: 
+* `body`, an `envoy` [HttpBody](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L199) object describing the response body. 
+* `context`, a gRPC [ServicerContext](https://grpc.github.io/grpc/python/grpc.html#grpc.ServicerContext) from the RPC
+* `request`, a simple `Dict` for supplying/supplementing request context across phases
+* `response`, a [BodyResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L224) object for telling `envoy` how to mutate the response (if at all). 
+
+Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
+
+### Trailers
+
+The trailers handlers are similar, but less likely to be used. See the code for details. 
+
 ## Examples
 
 There are several examples in `examples/`. These are packaged in the `docker` image built from `Dockerfile`, and included as services in the `docker-compose.yaml`. The basic `envoy` config `envoy.yaml` (used by the `docker-compose`) sets each example up to be used
