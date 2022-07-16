@@ -1,0 +1,18 @@
+version: v1beta1
+deps:
+  - buf.build/googleapis/googleapis
+  - buf.build/envoyproxy/protoc-gen-validate
+  - buf.build/envoyproxy/envoy
+build:
+  roots:
+    - schemas
+lint:
+  use:
+    - DEFAULT
+  except:
+    # -
+  ignore_only:
+
+breaking:
+  use:
+    - FILE

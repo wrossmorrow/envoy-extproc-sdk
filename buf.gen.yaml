@@ -1,0 +1,20 @@
+version: v1beta1
+plugins:
+  - name: python
+    out: generated/python/standardproto
+    strategy: all
+  - name: grpc_python_plugin
+    out: generated/python/standardproto
+    path: /usr/local/bin/grpc_python_plugin
+    strategy: all
+  # - name: grpclib_python
+  #   out: generated/python/grpclib
+  #   strategy: all
+  # - name: python_mypy
+  #   out: generated/python/standardproto
+  #   path: /usr/local/bin/protoc-gen-mypy
+  #   strategy: all
+  # - name: python_mypy_grpc
+  #   out: generated/python/standardproto
+  #   path: /usr/local/bin/protoc-gen-mypy_grpc
+  #   strategy: all
