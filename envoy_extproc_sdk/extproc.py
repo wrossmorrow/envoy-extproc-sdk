@@ -24,7 +24,9 @@ logger = getLogger(__name__)
 REVEAL_EXTPROC_CHAIN = (
     re.match(r"^([Tt](rue)?|[Yy](es)?)$", environ.get("REVEAL_EXTPROC_CHAIN", "True")) is not None
 )
-EXTPROCS_APPLIED_HEADER_NAME = "x-ext-procs-applied"
+
+EXTPROCS_APPLIED_HEADER = environ.get("EXTPROCS_APPLIED_HEADER", "x-ext-procs-applied")
+
 ENVOY_SERVICE_NAME = "envoy.service.ext_proc.v3.ExternalProcessor"
 
 ExtProcHandler = Callable
@@ -65,8 +67,10 @@ class BaseExtProcService(EnvoyExtProcServicer):
         ":method": "method",
         ":path": "path",
         "content-type": "content_type",
+        "content-length": "content_length",
         "x-request-id": "__id",
     }
+    
     STANDARD_RESPONSE_HEADERS = {
         "content-type": "content_type",
         "content-length": "content_length",
@@ -467,14 +471,14 @@ class BaseExtProcService(EnvoyExtProcServicer):
 
         header: EnvoyHeaderValue
 
-        filters_header = self.get_header(headers, EXTPROCS_APPLIED_HEADER_NAME, lower_cased=True)
+        filters_header = self.get_header(headers, EXTPROCS_APPLIED_HEADER, lower_cased=True)
         if filters_header:
             header = EnvoyHeaderValue(
-                key=EXTPROCS_APPLIED_HEADER_NAME,
+                key=EXTPROCS_APPLIED_HEADER,
                 value=f"{self.name},{filters_header}",
             )
         else:
-            header = EnvoyHeaderValue(key=EXTPROCS_APPLIED_HEADER_NAME, value=f"{self.name}")
+            header = EnvoyHeaderValue(key=EXTPROCS_APPLIED_HEADER, value=f"{self.name}")
 
         if isinstance(response, ext_api.ImmediateResponse):
             response.headers.set_headers.append(EnvoyHeaderValueOption(header=header))
