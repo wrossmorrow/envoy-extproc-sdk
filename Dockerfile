@@ -43,4 +43,4 @@ COPY generated/python/standardproto/ ./
 ARG GRPC_PORT=50051
 EXPOSE ${GRPC_PORT}
 
-CMD ["python","-m","envoy_extproc_sdk"]
+ENTRYPOINT ["python","-m","envoy_extproc_sdk"]
