@@ -112,7 +112,7 @@ The key features to point out are:
 
 You can run the package as module and invoke a CLI: 
 ```
-$ prpy -m envoy_extproc_sdk --help
+$ poetry run python -m envoy_extproc_sdk --help
 usage: __main__.py [-h] [-s SERVICE] [-p PORT] [-l]
 
 optional arguments:
