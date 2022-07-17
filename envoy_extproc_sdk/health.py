@@ -3,8 +3,14 @@ from typing import List, Optional
 from ddtrace import Span
 from ddtrace.filters import TraceFilter
 from grpc import ServicerContext
-from grpc_health_check.v1.health_pb2 import HealthCheckRequest, HealthCheckResponse
-from grpc_health_check.v1.health_pb2_grpc import add_HealthServicer_to_server, HealthServicer
+from grpc_health_check.v1.health_pb2 import (
+    HealthCheckRequest,
+    HealthCheckResponse,
+)
+from grpc_health_check.v1.health_pb2_grpc import (  # noqa: F401
+    add_HealthServicer_to_server,
+)
+from grpc_health_check.v1.health_pb2_grpc import HealthServicer
 
 grpc_health_path_base = "grpc.health"  # allow extension to future versions
 grpc_health_path_v1 = f"{grpc_health_path_base}.v1.Health"

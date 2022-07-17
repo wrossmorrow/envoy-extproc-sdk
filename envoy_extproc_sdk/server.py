@@ -4,8 +4,8 @@ from logging import getLogger
 from grpc.aio import Server
 from grpc.aio import server as grpc_aio_server
 
-from .health import add_HealthServicer_to_server, HealthService
 from .extproc import BaseExtProcService
+from .health import add_HealthServicer_to_server, HealthService
 from .settings import GRPC_PORT, SHUTDOWN_GRACE_PERIOD
 from .util.envoy import (
     add_ExternalProcessorServicer_to_server,
