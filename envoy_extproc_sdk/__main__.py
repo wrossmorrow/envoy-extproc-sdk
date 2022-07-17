@@ -5,7 +5,7 @@ from os import environ
 
 from .extproc import BaseExtProcService
 from .server import serve
-from .settings import GRPC_PORT
+from .settings import GRPC_PORT, SHUTDOWN_GRACE_PERIOD
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +53,15 @@ def parse_cli_args() -> argparse.Namespace:
         type=int,
         default=GRPC_PORT,
         help="Port to run service on",
+    )
+    parser.add_argument(
+        "-g",
+        "--grace-period",
+        dest="grace_period",
+        required=False,
+        type=int,
+        default=SHUTDOWN_GRACE_PERIOD,
+        help="Grace period to finish requests on shutdown",
     )
     parser.add_argument(
         "-l",

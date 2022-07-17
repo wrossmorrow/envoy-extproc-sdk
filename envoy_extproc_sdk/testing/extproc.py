@@ -1,4 +1,4 @@
-from typing import AsyncGenerator, Iterator
+from typing import AsyncGenerator
 
 from ..util.envoy import ext_api
 
@@ -37,15 +37,11 @@ class AsEnvoyExtProc:
             ext_api.ProcessingRequest(request_headers=request_headers),
             ext_api.ProcessingRequest(request_body=request_body),
             ext_api.ProcessingRequest(request_trailers=request_trailers),
-            ext_api.ProcessingRequest(request_headers=request_headers),
+            ext_api.ProcessingRequest(response_headers=response_headers),
             ext_api.ProcessingRequest(response_body=response_body),
             ext_api.ProcessingRequest(response_trailers=response_trailers),
         ]
 
     async def __aiter__(self) -> AsyncGenerator[ext_api.ProcessingRequest, None]:
-        for msg in self.messages:
-            yield msg
-
-    def __iter__(self) -> Iterator[ext_api.ProcessingRequest]:
         for msg in self.messages:
             yield msg

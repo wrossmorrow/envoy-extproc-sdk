@@ -48,13 +48,20 @@ check-format:
 
 .PHONY: unit-test
 unit-test: 
-	PYTHONPATH=.:$(GENERATED_CODE) DD_TRACE_ENABLED=false \
+	DD_TRACE_ENABLED=false \
 		poetry run python -m pytest -v tests/unit
 
 .PHONY: integration-test
 integration-test: 
-	PYTHONPATH=.:$(GENERATED_CODE) DD_TRACE_ENABLED=false \
+	DD_TRACE_ENABLED=false \
 		poetry run python -m pytest tests/integration
+
+.PHONY: coverage
+coverage: 
+	DD_TRACE_ENABLED=false \
+		poetry run coverage run -m pytest -v tests/unit \
+			--junitxml=test-results/junit.xml
+	poetry run coverage report -m
 
 .PHONY: run
 run:

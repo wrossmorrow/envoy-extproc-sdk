@@ -131,19 +131,26 @@ The key features to point out are:
 
 You can run the package as module and invoke a CLI: 
 ```
-$ poetry run python -m envoy_extproc_sdk --help
-usage: __main__.py [-h] [-s SERVICE] [-p PORT] [-l]
+$ python -m envoy_extproc_sdk --help
+usage: __main__.py [-h] [-s SERVICE] [-p PORT] [-g GRACE_PERIOD] [-l]
 
 optional arguments:
   -h, --help            show this help message and exit
   -s SERVICE, --service SERVICE
                         Processor to use, as an import spec
   -p PORT, --port PORT  Port to run service on
+  -g GRACE_PERIOD, --grace-period GRACE_PERIOD
+                        Grace period to finish requests on shutdown
   -l, --logging         Include logging setup
 ```
-Use `-s/--service` to tell the CLI what service to run (values should be a `python` import spec), `-p/--port` is the port to run the server on (by default `50051`), `-l/--logging` is a flag to setup `logging` at runtime (you might not want this, preferring your own logging setup). 
+Use 
+* `-s/--service` to tell the CLI what service to run (values should be a `python` import spec), 
+* `-p/--port` is the port to run the server on (by default `50051`), 
+* `-g/--grace-period` is the time (in seconds) to wait for requests to finish after interrupt (by default `5`), 
+* `-l/--logging` is a flag to setup `logging` at runtime (you might not want this, preferring your own logging setup).
 
-Other settings from `env` vars are in `settings.py`: 
+Other or overlapping settings from `env` vars are in `settings.py`: 
+* `GRPC_PORT` (default `50051`): the server listerner port
 * `SHUTDOWN_GRACE_PERIOD` (default `5` seconds): the time to wait for gracefull shutdown of the gRPC service
 * `REVEAL_EXTPROC_CHAIN` (default `True`): whether to add a response header that builds a list of all ExternalProcessors used in handling a request
 * `EXTPROCS_APPLIED_HEADER` (default `x-ext-procs-applied`): the name of that header

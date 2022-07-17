@@ -19,7 +19,8 @@ _cleanup = []
 
 
 def create_server(
-    service: EnvoyExtProcServicer = BaseExtProcService(), port: int = GRPC_PORT
+    service: EnvoyExtProcServicer = BaseExtProcService(),
+    port: int = GRPC_PORT,
 ) -> Server:
     server = grpc_aio_server()
     add_ExternalProcessorServicer_to_server(service, server)
@@ -29,7 +30,9 @@ def create_server(
 
 
 async def _serve(
-    service: EnvoyExtProcServicer = BaseExtProcService(), port: int = GRPC_PORT
+    service: EnvoyExtProcServicer = BaseExtProcService(),
+    port: int = GRPC_PORT,
+    grace_period: int = SHUTDOWN_GRACE_PERIOD,
 ) -> None:
     server = create_server(service=service, port=port)
     logger.info(f'Starting Envoy ExternalProcessor "{service}" at {port}')
@@ -40,16 +43,21 @@ async def _serve(
         # Shuts down the server with 0 seconds of grace period. During the
         # grace period, the server won't accept new connections and allow
         # existing RPCs to continue within the grace period.
-        await server.stop(SHUTDOWN_GRACE_PERIOD)
+        await server.stop(grace_period)
 
     _cleanup.append(server_graceful_shutdown())
     await server.wait_for_termination()
 
 
-def serve(service: EnvoyExtProcServicer = BaseExtProcService(), port: int = GRPC_PORT) -> None:
+def serve(
+    service: EnvoyExtProcServicer = BaseExtProcService(),
+    port: int = GRPC_PORT,
+    grace_period: int = SHUTDOWN_GRACE_PERIOD,
+) -> None:
     loop = get_event_loop()
     try:
-        loop.run_until_complete(_serve(service=service, port=port))
+        runc = _serve(service=service, port=port, grace_period=grace_period)
+        loop.run_until_complete(runc)
     finally:
         loop.run_until_complete(*_cleanup)
         loop.close()
