@@ -4,7 +4,7 @@
 
 [`envoy`](https://www.envoyproxy.io/), one of the most powerful and widely used reverse proxies, is able to query an [ExternalProcessor](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_proc_filter) gRPC service in it's filter chain. This functionality opens the door to quickly and robustly implemently customized functions at the edge, instead of in targeted services. [Bond](www.bond.tech), for example, is using this functionality to implement authentication, API call logging, and write-request idempotency. While powerful, implementing these services still requires dealing with complicated `envoy` specs, managing information sharing across request phases, and an understanding of gRPC, none of which are exactly straightforward. 
 
-**The purpose of this SDK is to make development of ExternalProcessors easy**. 
+**The purpose of this SDK is to make development of ExternalProcessors easy**. Specifically, this SDK _certainly_ won't supply the most _performant_ edge functions. Without a doubt that will come from eschewing the ease-of-use functionality here, implementing your filter in a compiled language, or even more likely _not even using an ExternalProcessor_ but instead using a custom filter binary or a WASM plugin. Performance isn't the goal; usability, maintainability, and low time-to-functionality is. 
 
 ### Usage
 

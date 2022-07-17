@@ -13,6 +13,9 @@ class Timer:
         self._duration = Duration()
         self._running = False
 
+    def __repr__(self) -> str:
+        return f"{self.started_iso()}, {self.duration_ns()}"
+
     def __enter__(self):
         return self.tic()
 
