@@ -43,6 +43,31 @@ Of course, this service isn't useful outside an `envoy` deployment configured to
 
 ### Utilities
 
+Currently `BaseExtProcService` has some `staticmethod` helpers for processing headers. 
+
+#### get_header
+
+Get a header from the request or response headers. 
+
+Arguments:
+* `headers` an [HttpHeaders]() object
+* `name` (`str`) the header to look for
+* `lower_cased` (`bool`, default `False`) whether the name is _already_ lowercased
+
+Returns the value of the header searched for, if it exists. `None` if it doesn't. 
+
+#### get_headers
+
+Get a set of headers from the request or response headers. 
+
+Arguments:
+* `headers` an [HttpHeaders]() object
+* `names` (`List[str]` or `Dict[str, str`) the headers to look for, by _actual_ header names
+* `lower_cased` (`bool`, default `False`) whether the name is _already_ lowercased
+* `mapping` (`List[str]`) names to return if a list of `names` is supplied
+
+Returns the value of the header searched for, if it exists. `None` if it doesn't. 
+
 ### Phase Handlers
 
 The following documents how to implement the request phase handlers. In any phase you can `raise` a 
