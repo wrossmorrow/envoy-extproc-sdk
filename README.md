@@ -318,6 +318,8 @@ will run our first example, the "trivial" processor.
 
 ### Quickstart
 
+#### CLI/`make`
+
 The `Makefile` provides a lot of helpful targets to get started. The simplest quickstart is probably
 ```
 $ make install format unit-test run
@@ -330,6 +332,8 @@ Review the `Makefile` for other commands, including
 * `build` (for `docker build`)
 * `package` (for building a `python` package)
 * `publish` (for distributing the `python` package)
+
+#### `docker`
 
 The `docker-compose` is a setup with `envoy`, a naive "echo" HTTP server (see `tests/mocks/echo/echo.py`), and the example ExternalProcessor services from `examples/`. This way you can make plain HTTP requests and actually see outcomes from the filters. The single upstream `echo` server responds to any request with a JSON payload containing the following keys
 * `method`: the request method it saw
