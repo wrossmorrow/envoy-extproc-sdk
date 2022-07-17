@@ -6,6 +6,8 @@
 
 **The purpose of this SDK is to make development of ExternalProcessors easy**. 
 
+### Usage
+
 Specifically we supply a `BaseExtProcService` that provides much of the boilerplate required to make this type of service. Here is a brief, untyped example of how to build one (based on `examples/decorated.py`):
 ```
 import logging
@@ -26,7 +28,24 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format=FORMAT, handlers=[logging.StreamHandler()])
     serve(service=svc)
 ```
-In short, you can simply "decorate" methods (of the right signature) and form an ExternalProcessor. This "route decoration" is a pattern common to `python` server frameworks, and is probably the easiest way to get started. The primary pattern we use though is subclassing, as you'll see if you review `examples/*.py`. The `serve` interface adopts the `grpc.aio` paradigm, which we've found a bit cleaner to use here than the threading concurrency model. 
+In short, you can simply "decorate" methods (of the right signature) and form an ExternalProcessor. This "route decoration" is a pattern common to `python` server frameworks, and is probably the easiest way to get started. The primary pattern we use though is subclassing, as you'll see if you review `examples/*.py`. 
+```
+class SomeExtProcService(BaseExtProcService):
+
+    def process_request_headers(self, headers, context, request, response):
+        ... # do stuff
+
+    def process_request_body(self, body, context, request, response):
+        ... # do stuff
+
+if __name__ == "__main__":
+    FORMAT = "%(asctime)s : %(levelname)s : %(message)s"
+    logging.basicConfig(level=logging.INFO, format=FORMAT, handlers=[logging.StreamHandler()])
+    serve(service=SomeExtProcService())
+```
+Obviously there's more to it, but that's the basic idea: focus on behaviors more than lower level implementations. 
+
+The provided `serve` interface adopts the `grpc.aio` paradigm, which we've found a bit cleaner to use here than the threading concurrency model. 
 
 Really you'll still need to learn some details about how `envoy` specifies and types these services and their data, but it's much more limited here. Basically `BaseExtProcService` implements the single RPC `Process` [defined by the spec](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto), pulls out the request phase data from [ProcessingRequest](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L63), and wraps request phase specific handlers in the requisite [ProcessingResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L126). This enables a subclass (or decorated methods) to focus solely on the logic for handling the request phases. These phases are
 * `{request,response}_headers`: process request or response headers
@@ -54,13 +73,61 @@ FROM envoy-extproc-sdk:${IMAGE_TAG}
 COPY ./examples ./examples
 ```
 
-Of course, this service isn't useful outside an `envoy` deployment configured to use it. See `envoy.yaml` for example configurations. 
+### Envoy Configuration
+
+Of course, this service isn't useful outside an `envoy` deployment configured to use it. This SDK doesn't help you configure your `envoy`, but see `envoy.yaml` for example configurations and see [the configuration reference](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_proc/v3/ext_proc.proto). 
+
+A simple version is something like
+```
+- name: envoy.filters.http.ext_proc
+  typed_config:
+    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor
+    grpc_service: 
+      envoy_grpc:
+        cluster_name: trivial
+      timeout: 30s
+    failure_mode_allow: true
+    message_timeout: 0.2s
+    processing_mode: 
+      request_header_mode: SEND
+      response_header_mode: SEND
+      request_body_mode: BUFFERED
+      response_body_mode: BUFFERED
+      request_trailer_mode: SKIP
+      response_trailer_mode: SKIP
+```
+The key features to point out are: 
+* `failure_mode_allow` declares whether ExternalProcessor failures to _break_ the request flow (`false`) or should be ignored (`true`); if a processor's action is critical to request processing, this should be `false`. 
+* `message_timeout` is the per-message timeout within a stream. This should be tailored to how long _any phase_ in request processing can take. 
+* `grpc_service.timeout` is the _full request_ timeout of a whole stream. This should be tailored to how long _the whole request_ can take, including any upstream filters or the ultimate target. 
+* the `processing_mode`s are important, describing what data an ExternalProcessor gets or doesn't. See [the specification](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/extensions/filters/http/ext_proc/v3/processing_mode.proto#L25) for details. 
 
 ## Interface
 
+### Command Line Interface
+
+You can run the package as module and invoke a CLI: 
+```
+$ prpy -m envoy_extproc_sdk --help
+usage: __main__.py [-h] [-s SERVICE] [-p PORT] [-l]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SERVICE, --service SERVICE
+                        Processor to use, as an import spec
+  -p PORT, --port PORT  Port to run service on
+  -l, --logging         Include logging setup
+```
+Use `-s/--service` to tell the CLI what service to run (values should be a `python` import spec), `-p/--port` is the port to run the server on (by default `50051`), `-l/--logging` is a flag to setup `logging` at runtime (you might not want this, preferring your own logging setup). 
+
+Other settings from `env` vars are in `settings.py`: 
+* `SHUTDOWN_GRACE_PERIOD` (default `5` seconds): the time to wait for gracefull shutdown of the gRPC service
+* `REVEAL_EXTPROC_CHAIN` (default `True`): whether to add a response header that builds a list of all ExternalProcessors used in handling a request
+* `EXTPROCS_APPLIED_HEADER` (default `x-ext-procs-applied`): the name of that header
+
 ### Utilities
 
-Currently `BaseExtProcService` has some `@staticmethod` helpers for processing headers. 
+Currently `BaseExtProcService` has some `@staticmethod` helpers for processing headers. Helpers for handling bodies may be introduced later. 
 
 #### BaseExtProcService.get_header
 

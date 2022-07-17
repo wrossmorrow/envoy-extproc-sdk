@@ -5,6 +5,7 @@ from os import environ
 
 from .extproc import BaseExtProcService
 from .server import serve
+from .settings import GRPC_PORT
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ def parse_cli_args() -> argparse.Namespace:
         dest="port",
         required=False,
         type=int,
-        default=50051,
+        default=GRPC_PORT,
         help="Port to run service on",
     )
     parser.add_argument(
