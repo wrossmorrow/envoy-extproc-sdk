@@ -398,15 +398,13 @@ class BaseExtProcService(EnvoyExtProcServicer):
     @staticmethod
     def get_headers(
         headers: ext_api.HttpHeaders,
-        names: Union[List[str], Dict[str, str]],
+        names: Union[Dict[str, str], List[Tuple[str, str]]],
         lower_cased: bool = False,
-        mapping: Optional[List[str]] = None,
     ) -> Dict[str, str]:
         """get multiple header values by name (envoy uses lower cased names)"""
 
         if isinstance(names, list):  # enforce dictionary input
-            keys = dict(zip(names, mapping)) if mapping else {n: n for n in names}
-            return BaseExtProcService.get_headers(headers, keys, lower_cased=lower_cased)
+            return BaseExtProcService.get_headers(headers, dict(names), lower_cased=lower_cased)
 
         if not lower_cased:  # enforce lower-cased keys
             keys = {k.lower(): v for k, v in names.items()}

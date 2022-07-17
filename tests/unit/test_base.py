@@ -104,20 +104,29 @@ def test_get_header(
 @pytest.mark.parametrize(
     "headers, names, results",
     (
-        (envoy_headers([]), ["empty"], {"empty": None}),
         (
             envoy_headers(headers=[("first", "1"), ("second", "2")]),
-            ["second"],
+            {"second": "second"},
             {"second": "2"},
         ),
         (
             envoy_headers(headers=[("first", "1"), ("second", "2")]),
-            ["first", "second"],
+            {"first": "first", "second": "second"},
             {"first": "1", "second": "2"},
         ),
         (
+            envoy_headers(headers=[("first", "1"), ("second", "2")]),
+            {"first": "second", "second": "first"},
+            {"first": "2", "second": "1"},
+        ),
+        (
+            envoy_headers(headers={"first": "1", "second": "2"}),
+            {"first": "second", "second": "first"},
+            {"first": "2", "second": "1"},
+        ),
+        (
             envoy_headers([("first", "1"), ("second", "2")]),
-            ["empty"],
+            {"empty": "empty"},
             {"empty": None},
         ),
     ),

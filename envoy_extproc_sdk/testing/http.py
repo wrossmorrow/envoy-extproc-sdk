@@ -4,13 +4,17 @@ from typing import Dict, List, Tuple, Union
 from ..util.envoy import EnvoyHeaderMap, EnvoyHeaderValue, ext_api
 
 
-def envoy_headers(headers: List[Tuple[str, str]] = None) -> ext_api.HttpHeaders:
+def envoy_headers(
+    headers: Union[Dict[str, str], List[Tuple[str, str]]] = None
+) -> ext_api.HttpHeaders:
     """Create envoy-typed headers from a list of key-value-pair tuples"""
     if headers is None:
         return ext_api.HttpHeaders()
+    if isinstance(headers, list):
+        return envoy_headers(dict(headers))
     return ext_api.HttpHeaders(
         headers=EnvoyHeaderMap(
-            headers=[EnvoyHeaderValue(key=header[0], value=header[1]) for header in headers]
+            headers=[EnvoyHeaderValue(key=key, value=value) for key, value in headers.items()]
         )
     )
 

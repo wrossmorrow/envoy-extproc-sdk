@@ -51,9 +51,14 @@ Really you'll still need to learn some details about how `envoy` specifies and t
 * `{request,response}_headers`: process request or response headers
 * `{request,response}_body`: process request or response bodies
 * `{request,response}_trailers`: process request or response trailers (note: we've found this buggy in `envoy`)
+
 See [this PRD](https://docs.google.com/document/d/1IZqm5IUnG9gc2VqwGaN5C2TZAD9_QbsY9Vvy5vr9Zmw/edit#heading=h.3zlthggr9vvv) for some extra illustration and discussion around the ExternalProcessor flow. 
 
-The `BaseExtProcService` _also_ implements it's own "request context" (the `request` argument in the decorated handlers above) to enable data passing between request phases. This is a _critical_ feature for effective, powerful external processing. `envoy` sends only request header data when asking to process request headers, only body data when asking to process request body, etc. But processor behaviors or computing can easily depend on the full known scope of request data. Storing and managing that data is what `request` is for; see `examples/*.py` for, well, examples. 
+The `BaseExtProcService` _also_ implements it's own "request context" (the `request` argument in the decorated handlers above) to enable data passing between request phases. This is a _critical_ feature for effective, powerful external processing. `envoy` sends only request header data when asking to process request headers, only body data when asking to process request body, etc. But processor behaviors or computing can easily depend on the full known scope of request data. 
+
+Storing and managing that inter-phase data is what `request` is for; see `examples/*.py` for, well, examples. `BaseExtProcService` is largely unopinionated about what data should be contained in the `request`, as that is highly use-case specific. As of now it only takes two default actions: 
+* In the `request_headers` phase, it pulls a set of "standard" headers into the `request`: the `method`, `path`, `content-type`, `content-length`, and the `x-request-id`. 
+* In the `response_headers` phase, it does the same over writing `content-type` and `content-length`. 
 
 ### Distribution
 
@@ -73,6 +78,20 @@ You can build on top of the `envoy_extproc_sdk` `docker` image and avoid this, a
 ARG IMAGE_TAG=latest
 FROM envoy-extproc-sdk:${IMAGE_TAG}
 COPY ./examples ./examples
+```
+
+### Testing
+
+There are also some testing utilities in `envoy_extproc_sdk.testing`. These mainly help create and send payloads to a processor for unit testing. 
+* `envoy_headers`: return a [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object from a `dict` of headers or a `list` of key-value pairs
+* `envoy_body`: return a [HttpBody](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L199) object from several types that could be bodies
+* `envoy_set_headers_to_dict`: return a `dict` of headers from a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object (useful for response modification assertions)
+* `AsEnvoyExtProc` is a class that can be initialized with phase data and sent to `BaseExtProcService.Process` to mimic processing of a request; ie
+```
+P = BaseExtProcService()
+E = AsEnvoyExtProc(request_headers=headers, request_body=body)
+async for response in P.Process(E, None):
+    ... # parse ProcessResponse and execute assertions based on phase
 ```
 
 ### Envoy Configuration
@@ -146,9 +165,8 @@ Returns the value of the header searched for, if it exists. `None` if it doesn't
 
 Arguments:
 * `headers` a [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object
-* `names` (`List[str]` or `Dict[str, str`) the names of the headers to look for, by _actual_ header names
+* `names` (`Union[Dict[str, str], List[Tuple[str, str]]]`) the names of the headers to look for, by _actual_ header names, mapped to keys to use in the returned list (e.g., `x-api-key` to `apikey`)
 * `lower_cased` (`bool`, default `False`) whether the name is _already_ lowercased
-* `mapping` (`List[str]`) names to return if a list of `names` is supplied
 
 Returns a `Dict` with mapped names as keys and header values (or `None`) as values.  
 
