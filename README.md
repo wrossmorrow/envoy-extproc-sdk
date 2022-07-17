@@ -65,7 +65,9 @@ and as a `docker` container (TBD)
 ```
 $ docker pull envoy-extprox-sdk:latest
 ```
-Note do _not_ package generated code from `envoy`'s `protobuf` specs in the `python` module. So if you use the `python` package you have to build and install the `protobuf` generated code from `envoy` (see `buf.yaml` here) for it to work. However you can build on top of the `envoy_extproc_sdk` `docker` image and avoid this, as we _do_ package the generated code in images. This can be done in the normal way, actually as illustrated by the examples here. In fact, `examples/Dockerfile` (used in the `docker-compose.yaml`) is only
+Note we do _not_ package generated code from `envoy`'s `protobuf` specs in the `python` module. So if you use the `python` package you have to build and install the `protobuf` generated code from `envoy` (see `buf.yaml` here and `make codegen`) for it to work. 
+
+You can build on top of the `envoy_extproc_sdk` `docker` image and avoid this, as we _do_ package the generated code in images. This can be done in the normal way, actually as illustrated by the examples here. In fact, `examples/Dockerfile` (used in the `docker-compose.yaml`) is only
 ```
 # syntax=docker/dockerfile:1.2
 ARG IMAGE_TAG=latest
@@ -84,23 +86,25 @@ A simple version is something like
     "@type": type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor
     grpc_service: 
       envoy_grpc:
-        cluster_name: trivial
+        cluster_name: my-extproc
       timeout: 30s
     failure_mode_allow: true
     message_timeout: 0.2s
     processing_mode: 
       request_header_mode: SEND
-      response_header_mode: SEND
+      response_header_mode: SKIP
       request_body_mode: BUFFERED
       response_body_mode: BUFFERED
       request_trailer_mode: SKIP
       response_trailer_mode: SKIP
 ```
+where `my-extproc` is a defined `cluster` pointing to the gRPC service. 
+
 The key features to point out are: 
 * `failure_mode_allow` declares whether ExternalProcessor failures to _break_ the request flow (`false`) or should be ignored (`true`); if a processor's action is critical to request processing, this should be `false`. 
 * `message_timeout` is the per-message timeout within a stream. This should be tailored to how long _any phase_ in request processing can take. 
 * `grpc_service.timeout` is the _full request_ timeout of a whole stream. This should be tailored to how long _the whole request_ can take, including any upstream filters or the ultimate target. 
-* the `processing_mode`s are important, describing what data an ExternalProcessor gets or doesn't. See [the specification](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/extensions/filters/http/ext_proc/v3/processing_mode.proto#L25) for details. 
+* the `processing_mode`s are important, describing what data an ExternalProcessor gets or doesn't. See [the specification](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/extensions/filters/http/ext_proc/v3/processing_mode.proto#L25) for details. The example service above will receive request headers but _not_ response headers, the _full_ request and response bodies in one pass (not streamed), and no trailers. 
 
 ## Interface
 
