@@ -11,20 +11,20 @@ Specifically we supply a `BaseExtProcService` that provides much of the boilerpl
 import logging
 from envoy_extproc_sdk import BaseExtProcService, serve
 
-DecoratedExtProcService = BaseExtProcService(name="DecoratedExtProcService")
+svc = BaseExtProcService(name="DecoratedExtProcService")
 
-@DecoratedExtProcService.process("request_headers")
+@svc.process("request_headers")
 def start_digest(headers, context, request, response):
     ... # do stuff
 
-@DecoratedExtProcService.process("request_body")
+@svc.process("request_body")
 def complete_digest(body, context, request, response):
     ... # do stuff
 
 if __name__ == "__main__":
     FORMAT = "%(asctime)s : %(levelname)s : %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT, handlers=[logging.StreamHandler()])
-    serve(service=DecoratedExtProcService())
+    serve(service=svc)
 ```
 In short, you can simply "decorate" methods (of the right signature) and form an ExternalProcessor. This "route decoration" is a pattern common to `python` server frameworks, and is probably the easiest way to get started. The primary pattern we use though is subclassing, as you'll see if you review `examples/*.py`. The `serve` interface adopts the `grpc.aio` paradigm, which we've found a bit cleaner to use here than the threading concurrency model. 
 
