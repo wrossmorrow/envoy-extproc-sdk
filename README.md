@@ -133,9 +133,7 @@ Other settings from `env` vars are in `settings.py`:
 
 Currently `BaseExtProcService` has some `@staticmethod` helpers for processing headers. Helpers for handling bodies may be introduced later. 
 
-#### BaseExtProcService.get_header
-
-Get a header from the request or response headers. 
+**BaseExtProcService.get_header** Get a header from the request or response headers. 
 
 Arguments:
 * `headers` a [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object
@@ -144,9 +142,7 @@ Arguments:
 
 Returns the value of the header searched for, if it exists. `None` if it doesn't. 
 
-#### BaseExtProcService.get_headers
-
-Get a set of headers from the request or response headers. 
+**BaseExtProcService.get_headers** Get a set of headers from the request or response headers. 
 
 Arguments:
 * `headers` a [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object
@@ -156,9 +152,7 @@ Arguments:
 
 Returns a `Dict` with mapped names as keys and header values (or `None`) as values.  
 
-#### BaseExtProcService.add_header
-
-Add a header to the request or response headers. 
+**BaseExtProcService.add_header** Add a header to the request or response headers. 
 
 Arguments:
 * `response` a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
@@ -167,9 +161,7 @@ Arguments:
 
 Returns the updated response. 
 
-#### BaseExtProcService.add_headers
-
-Add a set of headers to the request or response headers. 
+**BaseExtProcService.add_headers** Add a set of headers to the request or response headers. 
 
 Arguments:
 * `response` a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
@@ -177,9 +169,7 @@ Arguments:
 
 Returns the updated response. 
 
-#### BaseExtProcService.remove_header
-
-Remove a header from the request or response headers. 
+**BaseExtProcService.remove_header** Remove a header from the request or response headers. 
 
 Arguments:
 * `response` a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
@@ -187,9 +177,7 @@ Arguments:
 
 Returns the updated response. 
 
-#### BaseExtProcService.remove_headers
-
-Remove a set of headers from the request or response headers.
+**BaseExtProcService.remove_headers** Remove a set of headers from the request or response headers.
 
 Arguments:
 * `response` a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
@@ -197,9 +185,7 @@ Arguments:
 
 Returns the updated response. 
 
-### BaseExtProcService.form_immediate_response
-
-Construct an [ImmediateResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L286) object, which tells `envoy` to stop processing the request and respond as described. 
+**BaseExtProcService.form_immediate_response** Construct an [ImmediateResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L286) object, which tells `envoy` to stop processing the request and respond as described. 
 
 Arguments:
 * `EnvoyHttpStatusCode` a wrapper around `envoy`'s [StatusCode](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/type/http_status.proto#L18) for the response status
