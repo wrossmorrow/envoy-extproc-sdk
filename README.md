@@ -109,6 +109,16 @@ Arguments:
 
 Returns the updated response. 
 
+### form_immediate_response
+
+Construct an [ImmediateResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L286) object, which tells `envoy` to stop processing the request and respond as described. 
+
+Arguments:
+* `EnvoyHttpStatusCode` a wrapper around `envoy`'s [StatusCode](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/type/http_status.proto#L18) for the response status
+* `headers` (`Dict[str, str]`) the response headers to return to the caller
+* `body` (`str`) the body to return to the caller
+
+Returns the constructed `ImmediateResponse`. 
 
 ### Phase Handlers
 
@@ -118,11 +128,7 @@ envoy_extproc_sdk.StopRequestProcessing
 ```
 `Exception` to supply a response directly from the processor (without sending to the upstream processors or target). The constructor requires an [ImmediateResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L286) object, which you can construct with the helper method
 ```
-    def form_immediate_response(
-        status: EnvoyHttpStatusCode,
-        headers: Dict[str, str],
-        body: str,
-    ) -> ext_api.ImmediateResponse:
+raise StopRequestProcessing(response=form_immediate_response(...))
 ```
 in `BaseExtProcService`. 
 
