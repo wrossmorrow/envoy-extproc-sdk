@@ -4,7 +4,7 @@ from logging import getLogger
 from grpc.aio import Server
 from grpc.aio import server as grpc_aio_server
 
-# from .health import register_health
+from .health import add_HealthServicer_to_server, HealthService
 from .extproc import BaseExtProcService
 from .settings import GRPC_PORT, SHUTDOWN_GRACE_PERIOD
 from .util.envoy import (
@@ -24,7 +24,7 @@ def create_server(
 ) -> Server:
     server = grpc_aio_server()
     add_ExternalProcessorServicer_to_server(service, server)
-    # register_health(server)
+    add_HealthServicer_to_server(HealthService, server)
     server.add_insecure_port(f"[::]:{port}")
     return server
 

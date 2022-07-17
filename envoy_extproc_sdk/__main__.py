@@ -87,4 +87,4 @@ if __name__ == "__main__":  # pragma: no cover
         logging.basicConfig(level=LOG_LEVEL, format=FORMAT, handlers=[logging.StreamHandler()])
 
     service = import_from_spec(args.service)() if args.service else BaseExtProcService()
-    serve(service, args.port)
+    serve(service, args.port, args.grace_period)

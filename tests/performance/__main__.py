@@ -6,7 +6,7 @@ from envoy_extproc_sdk.util.timer import Timer
 HOST = "localhost"
 PORT = 8080
 
-COUNT = 100
+COUNT = 1000
 
 def run_requests(N: int, method: str, url: str) -> Timer:
     with Timer() as T:

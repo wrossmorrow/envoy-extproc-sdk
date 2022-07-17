@@ -28,6 +28,8 @@ codegen:
 	buf -v generate buf.build/cncf/xds
 	buf -v generate buf.build/envoyproxy/envoy
 	buf -v generate buf.build/envoyproxy/protoc-gen-validate
+	buf -v generate https://github.com/grpc/grpc.git --path src/proto/grpc/health/v1/health.proto
+	bash scripts/fix_grpc_health_proto.sh
 	bash scripts/install_generated_code.sh
 
 .PHONY: format
