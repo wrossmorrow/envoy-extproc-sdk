@@ -36,7 +36,6 @@ COPY ./poetry.lock ./pyproject.toml ./
 RUN poetry config virtualenvs.create false && poetry install -vvv --no-dev --no-root
 
 COPY ./envoy_extproc_sdk ./envoy_extproc_sdk
-COPY ./examples ./examples
 COPY generated/python/standardproto/ ./
 
 ARG GRPC_PORT=50051

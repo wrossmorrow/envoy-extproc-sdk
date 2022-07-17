@@ -26,16 +26,33 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format=FORMAT, handlers=[logging.StreamHandler()])
     serve(service=DecoratedExtProcService())
 ```
-In short, you can simple "decorate" methods (of the right signature) and get an ExternalProcessor. This "route decoration" is a pattern common to `python` server frameworks, and is probably the easiest way to get started. The primary pattern we use though is subclassing, as you'll see if you review `examples/*.py`. The `serve` interface adopts the `grpc.aio` paradigm, which we've found a bit cleaner to use here than the threading concurrency model. 
+In short, you can simply "decorate" methods (of the right signature) and form an ExternalProcessor. This "route decoration" is a pattern common to `python` server frameworks, and is probably the easiest way to get started. The primary pattern we use though is subclassing, as you'll see if you review `examples/*.py`. The `serve` interface adopts the `grpc.aio` paradigm, which we've found a bit cleaner to use here than the threading concurrency model. 
 
-Really you'll still need to learn some details about how `envoy` specifies and types these services and their data, but it's much more limited here. Basically `BaseExtProcService` implements the single RPC `Process` [defined by the spec](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto), pulls out the request phase data from `ProcessingRequest`, and wraps request phase specific handlers in the requisite `ProcessingResponse`. This enables a subclass (or decorated methods) to focus solely on the logic for handling the request phases. These phases are
+Really you'll still need to learn some details about how `envoy` specifies and types these services and their data, but it's much more limited here. Basically `BaseExtProcService` implements the single RPC `Process` [defined by the spec](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto), pulls out the request phase data from [ProcessingRequest](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L63), and wraps request phase specific handlers in the requisite [ProcessingResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L126). This enables a subclass (or decorated methods) to focus solely on the logic for handling the request phases. These phases are
 * `{request,response}_headers`: process request or response headers
 * `{request,response}_body`: process request or response bodies
 * `{request,response}_trailers`: process request or response trailers (note: we've found this buggy in `envoy`)
+See [this PRD](https://docs.google.com/document/d/1IZqm5IUnG9gc2VqwGaN5C2TZAD9_QbsY9Vvy5vr9Zmw/edit#heading=h.3zlthggr9vvv) for some extra illustration and discussion around the ExternalProcessor flow. 
 
-The `BaseExtProcService` _also_ implements it's own "request context" (the `request` argument in the decorated handlers above) to enable data passing between request phases. This is a _critical_ feature for effective, powerful external processing. `envoy` sends only request header data when asking to process request headers, only body data when asking to process request body, etc. But processor behaviors or computing can easily depend on the full known scope of request data. Storing and managing that data is what `request` is for; see `examples/*.py` for, well, exampled. 
+The `BaseExtProcService` _also_ implements it's own "request context" (the `request` argument in the decorated handlers above) to enable data passing between request phases. This is a _critical_ feature for effective, powerful external processing. `envoy` sends only request header data when asking to process request headers, only body data when asking to process request body, etc. But processor behaviors or computing can easily depend on the full known scope of request data. Storing and managing that data is what `request` is for; see `examples/*.py` for, well, examples. 
 
-We distribute this as `python` package and as a `docker` container. We do _not_ package generated code from `envoy`'s `protobuf` specs. So if you use the `python` package you have to build and install the `protobuf` generated code from `envoy` (see `buf.yaml` here). However you can build on top of the `envoy_extproc_sdk` `docker` image and avoid this, as we package the generated code in images. 
+### Distribution
+
+We distribute this as `python` package (TBD)
+```
+$ pip install envoy-extproc-sdk
+```
+and as a `docker` container (TBD)
+```
+$ docker pull envoy-extprox-sdk:latest
+```
+Note do _not_ package generated code from `envoy`'s `protobuf` specs in the `python` module. So if you use the `python` package you have to build and install the `protobuf` generated code from `envoy` (see `buf.yaml` here) for it to work. However you can build on top of the `envoy_extproc_sdk` `docker` image and avoid this, as we _do_ package the generated code in images. This can be done in the normal way, actually as illustrated by the examples here. In fact, `examples/Dockerfile` (used in the `docker-compose.yaml`) is only
+```
+# syntax=docker/dockerfile:1.2
+ARG IMAGE_TAG=latest
+FROM envoy-extproc-sdk:${IMAGE_TAG}
+COPY ./examples ./examples
+```
 
 Of course, this service isn't useful outside an `envoy` deployment configured to use it. See `envoy.yaml` for example configurations. 
 
@@ -43,9 +60,9 @@ Of course, this service isn't useful outside an `envoy` deployment configured to
 
 ### Utilities
 
-Currently `BaseExtProcService` has some `staticmethod` helpers for processing headers. 
+Currently `BaseExtProcService` has some `@staticmethod` helpers for processing headers. 
 
-#### get_header
+#### BaseExtProcService.get_header
 
 Get a header from the request or response headers. 
 
@@ -56,7 +73,7 @@ Arguments:
 
 Returns the value of the header searched for, if it exists. `None` if it doesn't. 
 
-#### get_headers
+#### BaseExtProcService.get_headers
 
 Get a set of headers from the request or response headers. 
 
@@ -68,7 +85,7 @@ Arguments:
 
 Returns a `Dict` with mapped names as keys and header values (or `None`) as values.  
 
-#### add_header
+#### BaseExtProcService.add_header
 
 Add a header to the request or response headers. 
 
@@ -79,7 +96,7 @@ Arguments:
 
 Returns the updated response. 
 
-#### add_headers
+#### BaseExtProcService.add_headers
 
 Add a set of headers to the request or response headers. 
 
@@ -89,7 +106,7 @@ Arguments:
 
 Returns the updated response. 
 
-#### remove_header
+#### BaseExtProcService.remove_header
 
 Remove a header from the request or response headers. 
 
@@ -99,7 +116,7 @@ Arguments:
 
 Returns the updated response. 
 
-#### remove_headers
+#### BaseExtProcService.remove_headers
 
 Remove a set of headers from the request or response headers.
 
@@ -109,7 +126,7 @@ Arguments:
 
 Returns the updated response. 
 
-### form_immediate_response
+### BaseExtProcService.form_immediate_response
 
 Construct an [ImmediateResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L286) object, which tells `envoy` to stop processing the request and respond as described. 
 
@@ -122,7 +139,7 @@ Returns the constructed `ImmediateResponse`.
 
 ### Phase Handlers
 
-The following documents how to implement the request phase handlers. In any phase you can `raise` a 
+The following documents how to implement the "request phase handlers". These describe what to do win each phase, how to read/write request context, and how to modify a request or response. In any phase you can `raise` a 
 ```
 envoy_extproc_sdk.StopRequestProcessing
 ```
@@ -131,6 +148,11 @@ envoy_extproc_sdk.StopRequestProcessing
 raise StopRequestProcessing(response=form_immediate_response(...))
 ```
 in `BaseExtProcService`. 
+
+In the labels below we assume 
+```
+P = BaseExtProcService(name="SomeExtProcService")
+```
 
 #### `@P.process("request_headers")` or `def process_request_headers`
 
@@ -174,46 +196,33 @@ Return the (possibly modified) `response` passed in, or `raise` a `StopRequestPr
 
 #### Trailers
 
-The trailers handlers are similar, but less likely to be used. See the code for details. 
+Trailers handlers are similar, but less likely to be used. See the code for details. 
 
 ## Examples
 
-There are several examples in `examples/`. These are packaged in the `docker` image built from `Dockerfile`, and included as services in the `docker-compose.yaml`. The basic `envoy` config `envoy.yaml` (used by the `docker-compose`) sets each example up to be used
+There are several examples in `examples/`. These can be packaged in the `docker` image built from `examples/Dockerfile` (see `make build`) and included as services in the `docker-compose.yaml`. The basic `envoy` config `envoy.yaml` (used by the `docker-compose`) sets each example up to be used. 
 
-* `BaseExtProcService`: The `BaseExtProcService` is an example in it's own right, but does nothing to requests. Using `LOG_LEVEL=DEBUG` will print log lines describing the processing steps taken. Run with
+`envoy_extproc_sdk.BaseExtProcService`: The `BaseExtProcService` is an example in it's own right, but does nothing to requests. Using `LOG_LEVEL=DEBUG` will print log lines describing the processing steps taken. Run with
 ```
 LOG_LEVEL=DEBUG make run
 ```
-
-* `TrivialExtProcService`: This example adds an upstream header as well as a response header, both the `x-request-id` but in the name `x-extra-request-id`. Run with
+For any other examples you can use the same command to run, specifying the `SERVICE`. For example, 
 ```
 make run SERVICE=examples.TrivialExtProcService
 ```
+will run our first example, the "trivial" processor. 
 
-* `TimerExtProcService`: This example times the request, add an upstream header (which the request started), and add two response headers (when the request started and how long it took in nanoseconds). Run with
-```
-make run SERVICE=examples.TrivialExtProcService
-```
+* `examples.TrivialExtProcService`: This example adds an upstream header as well as a response header, both the `x-request-id` but in the name `x-extra-request-id`. 
 
-* `DigestExtProcService`: This example computes a SHA256 digest of the request method, path, and body, and add that as an upstream request header and a response header `x-request-digest`. It demonstrates inter-phase data use. Run with
-```
-make run SERVICE=examples.DigestExtProcService
-```
+* `examples.TimerExtProcService`: This example times the request, add an upstream header (which the request started), and add two response headers (when the request started and how long it took in nanoseconds). 
 
-* `DecoratedExtProcService`: This example copies `DigestExtProcService`, but implements the service using the `@process` decorator instead of as a subclass service. Run with
-```
-make run SERVICE=examples.DecoratedExtProcService
-```
+* `examples.DigestExtProcService`: This example computes a SHA256 digest of the request method, path, and body, and add that as an upstream request header and a response header `x-request-digest`. It demonstrates inter-phase data use. 
 
-* `EchoExtProcService`: This example demonstrates use of `StopRequestProcessing` to respond immediately from an ExternalProcessor, instead of sending a request to the upstream processors or target. Run with
-```
-make run SERVICE=examples.EchoExtProcService
-```
+* `examples.DecoratedExtProcService`: This example copies `DigestExtProcService`, but implements the service using the `@process` decorator instead of as a subclass service. 
 
-* `CtxExtProcService`: This example allows for testing the request context. It reads a request header `x-context-id`, adding that to the upstream request headers. If that header is missing, the service does nothing else. If it exists, it will also analyze the request body, which it expects to be exactly the `x-context-id` supplied. The processor will fail if this doesn't match. The filter also processes the response body, which it expects to be JSON with the request path equal to `path` (as with our echo server in `tests/mocks/echo`). The service checks that value matches the `path` stored in the request context. These steps are largely to check that we can _concurrently_ make requests with different values and see consistency in the response header `x-context-id`, which we will not get if the service's processing fails. Run with
-```
-make run SERVICE=examples.CtxExtProcService
-```
+* `examples.EchoExtProcService`: This example demonstrates use of `StopRequestProcessing` to respond immediately from an ExternalProcessor, instead of sending a request to the upstream processors or target. 
+
+* `CtxExtProcService`: This example allows for testing the request context. It reads a request header `x-context-id`, adding that to the upstream request headers. If that header is missing, the service does nothing else. If it exists, it will also analyze the request body, which it expects to be exactly the `x-context-id` supplied. The processor will fail if this doesn't match. The filter also processes the response body, which it expects to be JSON with the request path equal to `path` (as with our echo server in `tests/mocks/echo`). The service checks that value matches the `path` stored in the request context. These steps are largely to check that we can _concurrently_ make requests with different values and see consistency in the response header `x-context-id`, which we will not get if the service's processing fails. 
 
 ## Development
 
@@ -240,9 +249,16 @@ Review the `Makefile` for other commands, including
 * `package` (for building a `python` package)
 * `publish` (for distributing the `python` package)
 
-The `docker-compose` is a setup with `envoy`, a naive "echo" HTTP server, and the example ExternalProcessor services from `examples/`. This way you can make plain HTTP requests and actually see outcomes from the filters. For example, after running 
+The `docker-compose` is a setup with `envoy`, a naive "echo" HTTP server (see `tests/mocks/echo/echo.py`), and the example ExternalProcessor services from `examples/`. This way you can make plain HTTP requests and actually see outcomes from the filters. The single upstream `echo` server responds to any request with a JSON payload containing the following keys
+* `method`: the request method it saw
+* `path`: the request path 
+* `headers`: a nested JSON of all the request headers it received
+* `body`: any request body it received
+* `message`: a message from the `echo` server
+
+For example, after running 
 ```
-$ docker-compose up --build
+$ make up
 ```
 you can try 
 ```

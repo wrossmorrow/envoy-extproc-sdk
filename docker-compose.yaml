@@ -22,12 +22,20 @@ services:
     environment:
       - LOG_LEVEL=info
 
-  trivial:
-    hostname: 'trivial'
-    image: envoy_extproc_sdk:${IMAGE_TAG:-compose}
+  base:
+    image: envoy-extproc-sdk:${IMAGE_TAG:-compose}
     build:
       context: .
-      dockerfile: "Dockerfile"
+      dockerfile: Dockerfile
+
+  trivial:
+    hostname: 'trivial'
+    image: envoy-extproc-sdk-examples:${IMAGE_TAG:-compose}
+    build:
+      context: .
+      dockerfile: examples/Dockerfile
+      args:
+        IMAGE_TAG: ${IMAGE_TAG:-compose}
     ports:
       - '50051:50051'
     environment:
@@ -40,7 +48,7 @@ services:
 
   timer:
     hostname: timer
-    image: envoy_extproc_sdk:${IMAGE_TAG:-compose}
+    image: envoy-extproc-sdk-examples:${IMAGE_TAG:-compose}
     ports:
       - '50052:50051'
     environment:
@@ -53,7 +61,7 @@ services:
 
   echo:
     hostname: echo
-    image: envoy_extproc_sdk:${IMAGE_TAG:-compose}
+    image: envoy-extproc-sdk-examples:${IMAGE_TAG:-compose}
     ports:
       - '50053:50051'
     environment:
@@ -66,7 +74,7 @@ services:
 
   digest:
     hostname: digest
-    image: envoy_extproc_sdk:${IMAGE_TAG:-compose}
+    image: envoy-extproc-sdk-examples:${IMAGE_TAG:-compose}
     ports:
       - '50054:50051'
     environment:
@@ -79,7 +87,7 @@ services:
 
   decorated:
     hostname: decorated
-    image: envoy_extproc_sdk:${IMAGE_TAG:-compose}
+    image: envoy-extproc-sdk-examples:${IMAGE_TAG:-compose}
     ports:
       - '50055:50051'
     environment:
@@ -92,7 +100,7 @@ services:
 
   context:
     hostname: context
-    image: envoy_extproc_sdk:${IMAGE_TAG:-compose}
+    image: envoy-extproc-sdk-examples:${IMAGE_TAG:-compose}
     ports:
       - '50056:50051'
     environment:

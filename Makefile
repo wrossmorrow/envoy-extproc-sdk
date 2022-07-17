@@ -63,6 +63,17 @@ run:
 .PHONY: build
 build:
 	docker build . -t $(IMAGE_NAME):$(IMAGE_TAG)
+	docker build . -f examples/Dockerfile \
+		--build-arg IMAGE_TAG=$(IMAGE_TAG) \
+		-t $(IMAGE_NAME)-examples:$(IMAGE_TAG)
+
+.PHONY: up
+up:
+	docker-compose up --build
+
+.PHONY: down
+down:
+	docker-compose down --volumes
 
 .PHONY: package
 package:
