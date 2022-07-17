@@ -19,10 +19,10 @@ class TrivialExtProcService(BaseExtProcService):
         headers: ext_api.HttpHeaders,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.HeadersResponse,
-    ) -> Union[ext_api.HeadersResponse, ext_api.ImmediateResponse]:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
         self.add_header(
-            response.response,
+            response,
             EXTRA_REQUEST_ID_HEADER,
             request["__id"],
         )
@@ -34,9 +34,9 @@ class TrivialExtProcService(BaseExtProcService):
         context: ServicerContext,
         request: Dict,
         response: ext_api.HeadersResponse,
-    ) -> Union[ext_api.HeadersResponse, ext_api.ImmediateResponse]:
+    ) -> ext_api.CommonResponse:
         self.add_header(
-            response.response,
+            response,
             EXTRA_REQUEST_ID_HEADER,
             request["__id"],
         )

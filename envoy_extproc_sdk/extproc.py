@@ -146,7 +146,11 @@ class BaseExtProcService(EnvoyExtProcServicer):
                     context.abort(StatusCode.UNIMPLEMENTED, msg)
 
                 # get a response object to pass (convenience)
-                response = getattr(self, f"get_{phase}_response")()
+                response = (
+                    ext_api.HeaderMutation() 
+                    if phase.endswith("trailers")
+                    else ext_api.CommonResponse()
+                )
 
                 # NOTE: this only applies if we process response_headers...
                 # that's an envoy configuration. To always capture this we
@@ -160,18 +164,34 @@ class BaseExtProcService(EnvoyExtProcServicer):
                     response = await self.process_phase(
                         phase, data, context, request, response, action
                     )
-                    yield ext_api.ProcessingResponse(**{phase: response})
+                    if phase.endswith("headers"):
+                        yield ext_api.ProcessingResponse(**{
+                            phase: ext_api.HeadersResponse(response=response)
+                        })
+                    elif phase.endswith("body"):
+                        yield ext_api.ProcessingResponse(**{
+                            phase: ext_api.BodyResponse(response=response)
+                        })
+                    else: # endswith("trailers") == True
+                        yield ext_api.ProcessingResponse(**{
+                            phase: ext_api.TrailersResponse(header_mutation=response)
+                        })
+
                 except StopRequestProcessing as err:
                     logger.debug(
-                        "caught StopRequestProcessing, sending ImmediateResponse",
+                        "Caught StopRequestProcessing; sending ImmediateResponse",
                         extra={
                             "processor": self.name,
                             "phase": request.get("__phase", "unknown"),
                             "request": request.get("__id", "unknown"),
+                            "status": err.response.status.code,
                             "reason": err.reason or "none supplied",
                         },
                     )
-                    yield ext_api.ProcessingResponse(immediate_response=err.response)
+                    response = err.response
+                    if REVEAL_EXTPROC_CHAIN:
+                        response = self.add_extprocs_chain_header(data, response)
+                    yield ext_api.ProcessingResponse(immediate_response=response)
 
     async def safe_iterator(
         self,
@@ -199,13 +219,12 @@ class BaseExtProcService(EnvoyExtProcServicer):
         data: Union[ext_api.HttpHeaders, ext_api.HttpBody, ext_api.HttpTrailers],
         context: ServicerContext,
         request: Dict,
-        response: Union[ext_api.HeadersResponse, ext_api.BodyResponse, ext_api.TrailersResponse],
+        response: Union[ext_api.CommonResponse, ext_api.HeaderMutation],
         action: Callable,
     ) -> Optional[
         Union[
-            ext_api.HeadersResponse,
-            ext_api.BodyResponse,
-            ext_api.TrailersResponse,
+            ext_api.CommonResponse,
+            ext_api.HeaderMutation,
             ext_api.ImmediateResponse,
         ]
     ]:
@@ -274,8 +293,8 @@ class BaseExtProcService(EnvoyExtProcServicer):
         headers: ext_api.HttpHeaders,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.HeadersResponse,
-    ) -> ext_api.HeadersResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
         return response
 
     async def process_request_body(
@@ -283,8 +302,8 @@ class BaseExtProcService(EnvoyExtProcServicer):
         body: ext_api.HttpBody,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.BodyResponse,
-    ) -> ext_api.BodyResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
         return response
 
     async def process_request_trailers(
@@ -301,8 +320,8 @@ class BaseExtProcService(EnvoyExtProcServicer):
         headers: ext_api.HttpHeaders,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.HeadersResponse,
-    ) -> ext_api.HeadersResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
         return response
 
     async def process_response_body(
@@ -310,8 +329,8 @@ class BaseExtProcService(EnvoyExtProcServicer):
         body: ext_api.HttpBody,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.BodyResponse,
-    ) -> ext_api.BodyResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
         return response
 
     async def process_response_trailers(
@@ -476,29 +495,32 @@ class BaseExtProcService(EnvoyExtProcServicer):
     def add_extprocs_chain_header(
         self,
         headers: ext_api.HttpHeaders,
-        response: Union[ext_api.HeadersResponse, ext_api.ImmediateResponse],
-    ) -> Union[ext_api.HeadersResponse, ext_api.ImmediateResponse]:
+        response: Union[ext_api.CommonResponse, ext_api.ImmediateResponse],
+    ) -> Union[ext_api.CommonResponse, ext_api.ImmediateResponse]:
         """
         This function helps provide visibility into the customized filter chain.
         Not a helper, this should stay in the base processor logic.
         """
 
-        header: EnvoyHeaderValue
-
+        header: EnvoyHeaderValueOption
         filters_header = self.get_header(headers, EXTPROCS_APPLIED_HEADER, lower_cased=True)
         if filters_header:
-            header = EnvoyHeaderValue(
-                key=EXTPROCS_APPLIED_HEADER,
-                value=f"{self.name},{filters_header}",
+            header = EnvoyHeaderValueOption(
+                header=EnvoyHeaderValue(
+                    key=EXTPROCS_APPLIED_HEADER,
+                    value=f"{self.name},{filters_header}",
+                )
             )
         else:
-            header = EnvoyHeaderValue(key=EXTPROCS_APPLIED_HEADER, value=f"{self.name}")
+            header = EnvoyHeaderValueOption(
+                header=EnvoyHeaderValue(
+                    key=EXTPROCS_APPLIED_HEADER, value=f"{self.name}"
+                )
+            )
 
         if isinstance(response, ext_api.ImmediateResponse):
-            response.headers.set_headers.append(EnvoyHeaderValueOption(header=header))
+            response.headers.set_headers.append(header)
         else:
-            response.response.header_mutation.set_headers.append(
-                EnvoyHeaderValueOption(header=header)
-            )
+            response.header_mutation.set_headers.append(header)
 
         return response

@@ -32,15 +32,15 @@ def start_digest(
     headers: ext_api.HttpHeaders,
     context: ServicerContext,
     request: Dict,
-    response: ext_api.HeadersResponse,
-) -> ext_api.HeadersResponse:
+    response: ext_api.CommonResponse,
+) -> ext_api.CommonResponse:
     request["tenant"] = BaseExtProcService.get_header(headers, TENANT_ID_HEADER)
     if not request["tenant"]:
         request["tenant"] = "unknown"
     request["digest"] = digest_headers(headers, request)
     if request["method"].lower() == "get":
         digest = request["digest"].hexdigest()
-        BaseExtProcService.add_header(response.response, REQUEST_DIGEST_HEADER, digest)
+        BaseExtProcService.add_header(response, REQUEST_DIGEST_HEADER, digest)
     return response
 
 
@@ -49,11 +49,11 @@ def complete_digest(
     body: ext_api.HttpBody,
     context: ServicerContext,
     request: Dict,
-    response: ext_api.BodyResponse,
-) -> ext_api.BodyResponse:
+    response: ext_api.CommonResponse,
+) -> ext_api.CommonResponse:
     request["digest"].update(body.body)
     digest = request["digest"].hexdigest()
-    BaseExtProcService.add_header(response.response, REQUEST_DIGEST_HEADER, digest)
+    BaseExtProcService.add_header(response, REQUEST_DIGEST_HEADER, digest)
     return response
 
 

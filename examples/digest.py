@@ -32,8 +32,8 @@ class DigestExtProcService(BaseExtProcService):
         headers: ext_api.HttpHeaders,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.HeadersResponse,
-    ) -> ext_api.HeadersResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
 
         request["tenant"] = self.get_header(headers, TENANT_ID_HEADER)
         if not request["tenant"]:
@@ -44,7 +44,7 @@ class DigestExtProcService(BaseExtProcService):
         # GETs don't have bodies? May not see request body phase
         if request["method"].lower() == "get":
             digest = request["digest"].hexdigest()
-            self.add_header(response.response, REQUEST_DIGEST_HEADER, digest)
+            self.add_header(response, REQUEST_DIGEST_HEADER, digest)
             request["encoded"] = digest
 
         return response
@@ -54,12 +54,12 @@ class DigestExtProcService(BaseExtProcService):
         body: ext_api.HttpBody,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.BodyResponse,
-    ) -> ext_api.BodyResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
 
         request["digest"].update(body.body)
         digest = request["digest"].hexdigest()
-        self.add_header(response.response, REQUEST_DIGEST_HEADER, digest)
+        self.add_header(response, REQUEST_DIGEST_HEADER, digest)
         request["encoded"] = digest
 
         return response
@@ -69,11 +69,11 @@ class DigestExtProcService(BaseExtProcService):
         body: ext_api.HttpBody,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.BodyResponse,
-    ) -> ext_api.BodyResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
 
         digest = request["encoded"]
-        self.add_header(response.response, REQUEST_DIGEST_HEADER, digest)
+        self.add_header(response, REQUEST_DIGEST_HEADER, digest)
         return response
 
 

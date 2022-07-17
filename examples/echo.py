@@ -31,8 +31,8 @@ class EchoExtProcService(BaseExtProcService):
         headers: ext_api.HttpHeaders,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.HeadersResponse,
-    ) -> ext_api.HeadersResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
         request["request_headers"] = {}
         for header in [h for h in headers.headers.headers if h.key[0] != ":"]:
             request["request_headers"][header.key] = header.value
@@ -43,8 +43,8 @@ class EchoExtProcService(BaseExtProcService):
         body: ext_api.HttpBody,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.BodyResponse,
-    ) -> ext_api.BodyResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
 
         if "x-echo-only" not in request["request_headers"]:
             return response

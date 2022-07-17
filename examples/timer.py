@@ -30,11 +30,11 @@ class TimerExtProcService(BaseExtProcService):
         headers: ext_api.HttpHeaders,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.HeadersResponse,
-    ) -> ext_api.HeadersResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
         """Start a timer in the context, add a request started header"""
         request["timer"] = Timer().tic()
-        self.add_header(response.response, REQUEST_STARTED_HEADER, request["timer"].started_iso())
+        self.add_header(response, REQUEST_STARTED_HEADER, request["timer"].started_iso())
         return response
 
     def process_response_body(
@@ -42,12 +42,12 @@ class TimerExtProcService(BaseExtProcService):
         body: ext_api.HttpBody,
         context: ServicerContext,
         request: Dict,
-        response: ext_api.BodyResponse,
-    ) -> ext_api.BodyResponse:
+        response: ext_api.CommonResponse,
+    ) -> ext_api.CommonResponse:
         """ "End" the timer in the context, add a response duration header"""
         timer = request["timer"].toc()
-        self.add_header(response.response, REQUEST_STARTED_HEADER, timer.started_iso())
-        self.add_header(response.response, REQUEST_DURATION_HEADER, str(timer.duration_ns()))
+        self.add_header(response, REQUEST_STARTED_HEADER, timer.started_iso())
+        self.add_header(response, REQUEST_DURATION_HEADER, str(timer.duration_ns()))
         return response
 
 

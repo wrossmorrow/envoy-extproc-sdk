@@ -40,19 +40,19 @@ def test_timer_flow(headers: ext_api.HttpHeaders, body: ext_api.HttpBody) -> Non
     s = Timestamp()
     s.GetCurrentTime()
 
-    response = ext_api.HeadersResponse()
+    response = ext_api.CommonResponse()
     response = P.process_request_headers(headers, None, request, response)
-    assert isinstance(response, ext_api.HeadersResponse)
+    assert isinstance(response, ext_api.CommonResponse)
 
-    _headers = envoy_set_headers_to_dict(response.response)
+    _headers = envoy_set_headers_to_dict(response)
     assert _headers
     assert REQUEST_STARTED_HEADER in _headers
 
-    response = ext_api.BodyResponse()
+    response = ext_api.CommonResponse()
     response = P.process_response_body(body, None, request, response)
-    assert isinstance(response, ext_api.BodyResponse)
+    assert isinstance(response, ext_api.CommonResponse)
 
-    _headers = envoy_set_headers_to_dict(response.response)
+    _headers = envoy_set_headers_to_dict(response)
     assert _headers
     assert REQUEST_STARTED_HEADER in _headers
     assert REQUEST_DURATION_HEADER in _headers

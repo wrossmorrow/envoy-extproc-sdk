@@ -242,7 +242,7 @@ Arguments:
 * `headers`, an `envoy` [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object describing the request headers. 
 * `context`, a gRPC [ServicerContext](https://grpc.github.io/grpc/python/grpc.html#grpc.ServicerContext) from the RPC
 * `request`, a simple `Dict` for supplying/supplementing request context across phases
-* `response`, a [HeadersResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L213) object for telling `envoy` how to mutate the request (if at all). 
+* `response`, a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object for telling `envoy` how to mutate the request (if at all). 
 
 Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
 
@@ -252,7 +252,7 @@ Arguments:
 * `body`, an `envoy` [HttpBody](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L199) object describing the request body. 
 * `context`, a gRPC [ServicerContext](https://grpc.github.io/grpc/python/grpc.html#grpc.ServicerContext) from the RPC
 * `request`, a simple `Dict` for supplying/supplementing request context across phases
-* `response`, a [BodyResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L224) object for telling `envoy` how to mutate the request (if at all). 
+* `response`, a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object for telling `envoy` how to mutate the request (if at all). 
 
 Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
 
@@ -262,7 +262,7 @@ Arguments:
 * `headers`, an `envoy` [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object describing the request headers. 
 * `context`, a gRPC [ServicerContext](https://grpc.github.io/grpc/python/grpc.html#grpc.ServicerContext) from the RPC
 * `request`, a simple `Dict` for supplying/supplementing request context across phases
-* `response`, a [HeadersResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L213) object for telling `envoy` how to mutate the response (if at all). 
+* `response`, a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object for telling `envoy` how to mutate the response (if at all). 
 
 Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
 
@@ -272,7 +272,7 @@ Arguments:
 * `body`, an `envoy` [HttpBody](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L199) object describing the response body. 
 * `context`, a gRPC [ServicerContext](https://grpc.github.io/grpc/python/grpc.html#grpc.ServicerContext) from the RPC
 * `request`, a simple `Dict` for supplying/supplementing request context across phases
-* `response`, a [BodyResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L224) object for telling `envoy` how to mutate the response (if at all). 
+* `response`, a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object for telling `envoy` how to mutate the response (if at all). 
 
 Return the (possibly modified) `response` passed in, or `raise` a `StopRequestProcessing`. 
 
