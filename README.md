@@ -138,7 +138,7 @@ Currently `BaseExtProcService` has some `@staticmethod` helpers for processing h
 Get a header from the request or response headers. 
 
 Arguments:
-* `headers` an [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object
+* `headers` a [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object
 * `name` (`str`) the name of the header to look for
 * `lower_cased` (`bool`, default `False`) whether the name is _already_ lowercased
 
@@ -149,7 +149,7 @@ Returns the value of the header searched for, if it exists. `None` if it doesn't
 Get a set of headers from the request or response headers. 
 
 Arguments:
-* `headers` an [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object
+* `headers` a [HttpHeaders](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L180) object
 * `names` (`List[str]` or `Dict[str, str`) the names of the headers to look for, by _actual_ header names
 * `lower_cased` (`bool`, default `False`) whether the name is _already_ lowercased
 * `mapping` (`List[str]`) names to return if a list of `names` is supplied
@@ -161,7 +161,7 @@ Returns a `Dict` with mapped names as keys and header values (or `None`) as valu
 Add a header to the request or response headers. 
 
 Arguments:
-* `response` an [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
+* `response` a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
 * `key` (`str`) the header to set
 * `value` (`str`) the header value
 
@@ -172,7 +172,7 @@ Returns the updated response.
 Add a set of headers to the request or response headers. 
 
 Arguments:
-* `response` an [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
+* `response` a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
 * `headers` (`Union[Dict[str, str], List[Tuple[str, str]]]`) the headers, as a `dict` or list of key-value pairs, to add
 
 Returns the updated response. 
@@ -182,7 +182,7 @@ Returns the updated response.
 Remove a header from the request or response headers. 
 
 Arguments:
-* `response` an [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
+* `response` a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
 * `name` (`str`) the header to remove (if it exists)
 
 Returns the updated response. 
@@ -192,7 +192,7 @@ Returns the updated response.
 Remove a set of headers from the request or response headers.
 
 Arguments:
-* `response` an [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
+* `response` a [CommonResponse](https://github.com/envoyproxy/envoy/blob/1cf5603dc5239c92e5bc38ef321f59ccf6eabc6e/api/envoy/service/ext_proc/v3/external_processor.proto#L230) object
 * `name` (`List[str]`) the headers, by name, to remove (if they exist)
 
 Returns the updated response. 
