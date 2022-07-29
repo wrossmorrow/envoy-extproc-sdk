@@ -1,5 +1,5 @@
 
-IMAGE_NAME=envoy-extproc-sdk
+IMAGE_NAME=envoy-extproc-sdk-python
 IMAGE_TAG=`git rev-parse HEAD`
 GENERATED_CODE=generated/python/standardproto
 SERVICE=envoy_extproc_sdk.BaseExtProcService

@@ -62,13 +62,13 @@ Storing and managing that inter-phase data is what `request` is for; see `exampl
 
 ### Distribution
 
-We distribute this as `python` package (TBD)
+We distribute this as `python` [package on pypi](https://pypi.org/project/envoy-extproc-sdk/#description)
 ```
 $ pip install envoy-extproc-sdk
 ```
-and as a `docker` container (TBD)
+and as a `docker` container on [dockerhub](https://hub.docker.com/r/wrossmorrow/envoy-extproc-sdk-python)
 ```
-$ docker pull envoy-extprox-sdk:latest
+$ docker pull envoy-extproc-sdk-python:latest
 ```
 Note we do _not_ package generated code from `envoy`'s `protobuf` specs in the `python` module. (The `grpc` libraries themselves are "broken" relative to newer `protobuf` because they embedd old generated code for health checks, which seem now unusable.) So if you use the `python` package you have to build and install the `protobuf` generated code from `envoy` (see `buf.yaml` here and `make codegen`) for it to work. We recommend following our approach here, as we customize handling of the health check generated code. 
 
